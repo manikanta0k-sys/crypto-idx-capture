@@ -9,3 +9,5 @@ Crypto IDX Monitor — Neon Layout V4
 5. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=neon4
 
 The design resembles the supplied visual reference, but does NOT display fabricated 72% probabilities, fictional MACD/RSI values, or false Binomo live data. The central chart is a real normalized returns LINE graph, not fake candlesticks. Kraken public spot data is separate from Binomo IDX. Screenshot analysis is experimental and manually triggered.
+
+30-second update: frontend refresh interval is 30000 ms and backend cache TTL is 30 seconds.

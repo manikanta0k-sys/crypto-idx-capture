@@ -17,7 +17,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["https://manikanta0k-sys.githu
 
 PAIRS = {"BTC": "XBTUSD", "ETH": "ETHUSD", "BNB": "BNBUSD", "SOL": "SOLUSD", "XRP": "XRPUSD", "ADA": "ADAUSD", "DOGE": "DOGEUSD", "TRX": "TRXUSD", "AVAX": "AVAXUSD", "LINK": "LINKUSD"}
 BASE = "https://api.kraken.com/0/public"
-TTL = 60
+TTL = 30
 _cache = {"time": 0, "payload": None}
 _lock = asyncio.Lock()
 
@@ -144,7 +144,7 @@ async def build_payload():
     ups = sum(v["signal"] == "UP" for v in good); downs = sum(v["signal"] == "DOWN" for v in good)
     combined = "UP" if len(good) >= 8 and ups >= 6 and downs <= 1 else "DOWN" if len(good) >= 8 and downs >= 6 and ups <= 1 else "WAIT"
     series = [round(mean(v["series"][i] for v in good), 5) for i in range(30)] if len(good) >= 8 else []
-    return {"source":"Kraken public USD spot markets (NOT Binomo IDX)", "timeframe":"1m closed candles", "generated_at":int(time.time()), "refresh_seconds":60, "valid_markets":len(good), "total_markets":len(PAIRS), "status":"ok" if len(good)==10 else "partial" if good else "unavailable", "coins":coins, "combined_signal":combined, "combined_series":series, "strategy_counts":counts, "combined_buy_pct":None, "disclaimer":"Public spot market indicators, not a prediction or Binomo IDX signal. Buy/sell trade volume not provided by OHLC feed."}
+    return {"source":"Kraken public USD spot markets (NOT Binomo IDX)", "timeframe":"1m closed candles", "generated_at":int(time.time()), "refresh_seconds":30, "valid_markets":len(good), "total_markets":len(PAIRS), "status":"ok" if len(good)==10 else "partial" if good else "unavailable", "coins":coins, "combined_signal":combined, "combined_series":series, "strategy_counts":counts, "combined_buy_pct":None, "disclaimer":"Public spot market indicators, not a prediction or Binomo IDX signal. Buy/sell trade volume not provided by OHLC feed."}
 
 
 @app.get("/")
