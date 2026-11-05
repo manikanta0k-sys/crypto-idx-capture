@@ -1,14 +1,11 @@
-CRYPTO 10 MARKET MONITOR — IPHONE SETUP
+CRYPTO 10 — GITHUB + RENDER
 
-1. Unzip this file using the iPhone Files app.
-2. In GitHub repository manikanta0k-sys/crypto-idx-capture, upload index.html, main.py, requirements.txt into the repository ROOT. Overwrite existing files and commit to main.
-3. GitHub Settings > Pages > Deploy from a branch > main > /(root) > Save.
-4. In Render, open your existing Web Service. Verify it is connected to the same repository and main branch.
-5. Render settings: Runtime Python; Build Command: pip install -r requirements.txt; Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
-6. Deploy latest commit manually if automatic deploy is disabled. Wait for status Live.
-7. Test https://crypto-idx-capture-1.onrender.com/api/market — should return JSON with status, coins, combined_signal.
-8. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=4
+1. Upload index.html, main.py, requirements.txt directly into the ROOT of your existing GitHub repository. Overwrite older files.
+2. GitHub repository Settings > Pages: Deploy from a branch > main > /(root) > Save.
+3. Render: Existing Web Service must point to this GitHub repo and main branch. Set Root Directory empty, Build Command: pip install -r requirements.txt
+4. Render Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+5. Render: Manual Deploy > Deploy latest commit (unless automatic deployment occurs).
+6. Check https://crypto-idx-capture-1.onrender.com/api/market. It should say source: Kraken and valid_markets > 0 if Render can reach Kraken.
+7. Check https://manikanta0k-sys.github.io/crypto-idx-capture/?v=kraken2
 
-IMPORTANT: If Binance blocks Render's IP, the API will show unavailable and WAIT. This is an honest error; don't interpret placeholder bars as real data. The server tries two Binance public endpoints, but some environments block both. If so, the feed needs to be replaced with a supported provider.
-
-This dashboard is public spot data, NOT Binomo Crypto IDX. 60-second refresh runs while Safari page is active.
+No Binance. Kraken OHLC is public; some markets may be unsupported or blocked by the hosting provider. Data failures display unavailable/WAIT. 60-second server cache. Buy/sell executed trade volumes cannot be derived from OHLC, so the UI marks them unavailable. No trading execution and no Binomo IDX integration.

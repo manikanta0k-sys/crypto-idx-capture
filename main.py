@@ -1,97 +1,159 @@
-import asyncio, os, time, math
+"""Crypto 10 public Kraken spot monitor. No trading, no Binomo integration."""
+import asyncio
+import math
+import os
+import time
+from datetime import datetime, timezone
+from statistics import mean
+
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import httpx
 
-app=FastAPI(title='Crypto 10 Spot Market Monitor',version='1.0')
-app.add_middleware(CORSMiddleware,allow_origins=['https://manikanta0k-sys.github.io','http://localhost:8000'],allow_methods=['GET'],allow_headers=['*'])
-SYMBOLS=['BTC','ETH','BNB','SOL','XRP','ADA','DOGE','TRX','AVAX','LINK']
-_cache={'at':0,'value':None}
+app = FastAPI(title="Crypto 10 Market Monitor - Kraken Spot", version="2.0")
+app.add_middleware(CORSMiddleware, allow_origins=["https://manikanta0k-sys.github.io", "http://localhost:8000"], allow_methods=["GET"], allow_headers=["*"])
 
-def sma(xs,n): return sum(xs[-n:])/n if len(xs)>=n else None
+PAIRS = {"BTC": "XBTUSD", "ETH": "ETHUSD", "BNB": "BNBUSD", "SOL": "SOLUSD", "XRP": "XRPUSD", "ADA": "ADAUSD", "DOGE": "DOGEUSD", "TRX": "TRXUSD", "AVAX": "AVAXUSD", "LINK": "LINKUSD"}
+BASE = "https://api.kraken.com/0/public"
+TTL = 60
+_cache = {"time": 0, "payload": None}
+_lock = asyncio.Lock()
 
-def rsi(xs,n=14):
-    if len(xs)<n+2:return None
-    changes=[xs[i]-xs[i-1] for i in range(1,len(xs))]
-    gains=[max(0,x) for x in changes];losses=[max(0,-x) for x in changes]
-    avg_g=sum(gains[:n])/n;avg_l=sum(losses[:n])/n
-    for i in range(n,len(changes)):
-        avg_g=(avg_g*(n-1)+gains[i])/n;avg_l=(avg_l*(n-1)+losses[i])/n
-    return 100 if avg_l==0 else 100-100/(1+avg_g/avg_l)
 
-def psar(high,low,step=.02,maximum=.2):
-    if len(high)<3:return None
-    up=high[1]>=high[0]; sar=low[0] if up else high[0];ep=max(high[:2]) if up else min(low[:2]);af=step
-    for i in range(2,len(high)):
-        sar=sar+af*(ep-sar)
-        if up:
-            sar=min(sar,low[i-1],low[i-2])
-            if low[i]<sar:up=False;sar=ep;ep=low[i];af=step
-            elif high[i]>ep:ep=high[i];af=min(maximum,af+step)
+def sma(values, n):
+    return mean(values[-n:]) if len(values) >= n else None
+
+
+def rsi(closes, period=14):
+    if len(closes) < period + 2:
+        return None
+    changes = [closes[i] - closes[i - 1] for i in range(1, len(closes))]
+    gains = [max(0, d) for d in changes]
+    losses = [max(0, -d) for d in changes]
+    avg_gain = mean(gains[:period]); avg_loss = mean(losses[:period])
+    out = []
+    for i in range(period, len(changes)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        out.append(100 if avg_loss == 0 else 100 - 100 / (1 + avg_gain / avg_loss))
+    return out[-2:] if len(out) >= 2 else None
+
+
+def psar(candles):
+    if len(candles) < 25:
+        return None
+    highs = [x[2] for x in candles]; lows = [x[3] for x in candles]
+    rising = candles[1][4] >= candles[0][4]
+    sar = lows[0] if rising else highs[0]
+    extreme = highs[0] if rising else lows[0]
+    af = 0.02
+    for i in range(1, len(candles)):
+        sar = sar + af * (extreme - sar)
+        if rising:
+            sar = min(sar, lows[i-1], lows[max(0, i-2)])
+            if lows[i] < sar:
+                rising = False; sar = extreme; extreme = lows[i]; af = 0.02
+            elif highs[i] > extreme:
+                extreme = highs[i]; af = min(0.2, af + 0.02)
         else:
-            sar=max(sar,high[i-1],high[i-2])
-            if high[i]>sar:up=True;sar=ep;ep=high[i];af=step
-            elif low[i]<ep:ep=low[i];af=min(maximum,af+step)
+            sar = max(sar, highs[i-1], highs[max(0, i-2)])
+            if highs[i] > sar:
+                rising = True; sar = extreme; extreme = highs[i]; af = 0.02
+            elif lows[i] < extreme:
+                extreme = lows[i]; af = min(0.2, af + 0.02)
     return sar
 
-def vote(value):return 'UP' if value>0 else 'DOWN' if value<0 else 'WAIT'
 
-def analyze(rows):
-    # Exchange 1-minute candles; discard the latest potentially unfinished candle.
-    rows=rows[:-1]
-    if len(rows)<45:raise ValueError('Insufficient closed candles')
-    o=[float(x[1]) for x in rows];h=[float(x[2]) for x in rows];l=[float(x[3]) for x in rows];c=[float(x[4]) for x in rows]
-    volume=sum(float(x[5]) for x in rows[-15:]);buy=sum(float(x[9]) for x in rows[-15:]);sell=max(0,volume-buy)
-    # PSAR and BB: middle-band and SAR positioning. This is a heuristic, not a strict crossing-only signal.
-    mid=sma(c,20);sar=psar(h,l)
-    ps=vote(1 if c[-1]>mid and c[-1]>sar else -1 if c[-1]<mid and c[-1]<sar else 0)
-    # Heikin Ashi candle direction and body strength.
-    ha_open=(o[0]+c[0])/2;ha_close=(o[0]+h[0]+l[0]+c[0])/4
-    for i in range(1,len(c)):
-        newclose=(o[i]+h[i]+l[i]+c[i])/4
-        ha_open=(ha_open+ha_close)/2;ha_close=newclose
-    ha=vote(1 if ha_close>ha_open else -1 if ha_close<ha_open else 0)
-    # Range support/resistance proximity heuristic, not a proprietary ribbon formula.
-    hi=max(h[-31:-1]);lo=min(l[-31:-1]);span=max(hi-lo,1e-12)
-    ribbon=vote(1 if c[-1]>hi or (c[-1]-lo)/span<.18 else -1 if c[-1]<lo or (hi-c[-1])/span<.18 else 0)
-    mids=[(a+b)/2 for a,b in zip(h,l)]
-    ao=sma(mids,5)-sma(mids,34)
-    rr=rsi(c); ar=vote(1 if ao>0 and rr>50 else -1 if ao<0 and rr<50 else 0)
-    strategies={'PSAR + Bollinger':ps,'Heikin Ashi':ha,'Range Ribbon (heuristic)':ribbon,'Awesome + RSI':ar}
-    up=sum(v=='UP' for v in strategies.values());down=sum(v=='DOWN' for v in strategies.values())
-    signal='UP' if up>=3 else 'DOWN' if down>=3 else 'WAIT'
-    return {'price':c[-1],'signal':signal,'strategies':strategies,'buy_volume':round(buy,5),'sell_volume':round(sell,5),'buy_pct':round(100*buy/volume,1) if volume else None,'rsi':round(rr,1),'series':[round((v/c[-31]-1)*100,4) for v in c[-31:]],'last_candle_ms':int(rows[-1][0])}
+def strategies(c):
+    closes = [x[4] for x in c]; highs = [x[2] for x in c]; lows = [x[3] for x in c]
+    mids = [(x[2] + x[3]) / 2 for x in c]
+    votes = {}
+    # Bollinger middle = SMA20, PSAR acceleration .02 / .2
+    middle = sma(closes, 20); sar = psar(c)
+    votes["psar_bb"] = "UP" if sar is not None and middle is not None and closes[-1] > middle and closes[-2] <= mean(closes[-21:-1]) and sar < closes[-1] else ("DOWN" if sar is not None and middle is not None and closes[-1] < middle and closes[-2] >= mean(closes[-21:-1]) and sar > closes[-1] else "WAIT")
+    # Heikin Ashi: last two completed candles same direction, small/no opposite wick
+    ha_open = (c[0][1] + c[0][4]) / 2
+    ha = []
+    for bar in c:
+        ha_close = (bar[1] + bar[2] + bar[3] + bar[4]) / 4
+        ha_high = max(bar[2], ha_open, ha_close); ha_low = min(bar[3], ha_open, ha_close)
+        ha.append((ha_open, ha_close, ha_high, ha_low))
+        ha_open = (ha_open + ha_close) / 2
+    a, b = ha[-2:]
+    votes["heikin_ashi"] = "UP" if all(x[1] > x[0] and abs(x[2]-x[1]) <= (x[2]-x[3])*0.15 for x in (a,b)) else ("DOWN" if all(x[1] < x[0] and abs(x[3]-x[1]) <= (x[2]-x[3])*0.15 for x in (a,b)) else "WAIT")
+    # Range ribbon heuristic: price rebounds near 30-bar support/resistance
+    support = min(lows[-31:-1]); resistance = max(highs[-31:-1]); width = resistance-support
+    if width <= 0:
+        votes["range_ribbon"] = "WAIT"
+    elif closes[-2] <= support + width*0.18 and closes[-1] > closes[-2] and closes[-1] < resistance - width*0.15:
+        votes["range_ribbon"] = "UP"
+    elif closes[-2] >= resistance - width*0.18 and closes[-1] < closes[-2] and closes[-1] > support + width*0.15:
+        votes["range_ribbon"] = "DOWN"
+    else:
+        votes["range_ribbon"] = "WAIT"
+    # Awesome oscillator SMA5(mid) - SMA34(mid), RSI14 crosses 50
+    r = rsi(closes)
+    ao_now = mean(mids[-5:]) - mean(mids[-34:]); ao_prev = mean(mids[-6:-1]) - mean(mids[-35:-1])
+    votes["awesome_rsi"] = "UP" if r and r[-2] <= 50 < r[-1] and ao_prev <= 0 < ao_now else ("DOWN" if r and r[-2] >= 50 > r[-1] and ao_prev >= 0 > ao_now else "WAIT")
+    return votes
 
-async def fetch(client,symbol):
-    urls=['https://data-api.binance.vision/api/v3/klines','https://api.binance.com/api/v3/klines']
-    error='Market feed unavailable'
-    for url in urls:
-        try:
-            resp=await client.get(url,params={'symbol':symbol+'USDT','interval':'1m','limit':75})
-            resp.raise_for_status();data=resp.json()
-            if not isinstance(data,list):raise ValueError('Unexpected exchange response')
-            return symbol,analyze(data)
-        except Exception as exc:error=type(exc).__name__+': '+str(exc)[:100]
-    return symbol,{'signal':'WAIT','error':error}
 
-@app.get('/')
-def root():return {'service':'Crypto 10 Spot Market Monitor','status':'running','market_endpoint':'/api/market'}
+async def get_ohlc(client, coin, pair):
+    try:
+        resp = await client.get(f"{BASE}/OHLC", params={"pair": pair, "interval": 1})
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("error"):
+            raise ValueError("; ".join(data["error"]))
+        key = next((k for k in data["result"] if k != "last"), None)
+        if not key:
+            raise ValueError("No candle data")
+        # Last row is the still-forming candle. Exclude it from indicators.
+        rows = data["result"][key][:-1]
+        c = [[int(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[6])] for x in rows]
+        if len(c) < 65:
+            raise ValueError(f"Only {len(c)} closed candles")
+        if time.time() - c[-1][0] > 240:
+            raise ValueError("Latest completed candle is stale")
+        votes = strategies(c)
+        ups = sum(v == "UP" for v in votes.values()); downs = sum(v == "DOWN" for v in votes.values())
+        signal = "UP" if ups >= 2 and downs == 0 else "DOWN" if downs >= 2 and ups == 0 else "WAIT"
+        return coin, {"valid": True, "price": c[-1][4], "signal": signal, "strategies": votes, "volume_30m_base": round(sum(x[5] for x in c[-30:]), 5), "series": [round((x[4]/c[-31][4]-1)*100, 5) for x in c[-30:]], "buy_volume": None, "sell_volume": None}
+    except Exception as exc:
+        return coin, {"valid": False, "signal": "WAIT", "error": str(exc)[:240], "buy_volume": None, "sell_volume": None}
 
-@app.get('/api/market')
+
+async def build_payload():
+    limits = httpx.Limits(max_connections=5)
+    async with httpx.AsyncClient(timeout=18, limits=limits, headers={"User-Agent": "Crypto10PublicMarketMonitor/2.0"}) as client:
+        # Small batches reduce the chance of exchange rate limiting.
+        results = []
+        entries = list(PAIRS.items())
+        for i in range(0, len(entries), 3):
+            results.extend(await asyncio.gather(*(get_ohlc(client, coin, pair) for coin, pair in entries[i:i+3])))
+            if i+3 < len(entries):
+                await asyncio.sleep(0.4)
+    coins = dict(results)
+    good = [v for v in coins.values() if v.get("valid")]
+    counts = {name: {"UP":0,"DOWN":0,"WAIT":0} for name in ("psar_bb", "heikin_ashi", "range_ribbon", "awesome_rsi")}
+    for v in good:
+        for name, signal in v["strategies"].items():
+            counts[name][signal] += 1
+    ups = sum(v["signal"] == "UP" for v in good); downs = sum(v["signal"] == "DOWN" for v in good)
+    combined = "UP" if len(good) >= 8 and ups >= 6 and downs <= 1 else "DOWN" if len(good) >= 8 and downs >= 6 and ups <= 1 else "WAIT"
+    series = [round(mean(v["series"][i] for v in good), 5) for i in range(30)] if len(good) >= 8 else []
+    return {"source":"Kraken public USD spot markets (NOT Binomo IDX)", "timeframe":"1m closed candles", "generated_at":int(time.time()), "refresh_seconds":60, "valid_markets":len(good), "total_markets":len(PAIRS), "status":"ok" if len(good)==10 else "partial" if good else "unavailable", "coins":coins, "combined_signal":combined, "combined_series":series, "strategy_counts":counts, "combined_buy_pct":None, "disclaimer":"Public spot market indicators, not a prediction or Binomo IDX signal. Buy/sell trade volume not provided by OHLC feed."}
+
+
+@app.get("/")
+async def root():
+    return {"service":"Crypto 10 Kraken market API", "market_endpoint":"/api/market", "docs":"/docs"}
+
+
+@app.get("/api/market")
 async def market():
-    now=time.time()
-    if _cache['value'] is not None and now-_cache['at']<50:return _cache['value']
-    async with httpx.AsyncClient(timeout=12,headers={'User-Agent':'Crypto10Monitor/1.0'}) as client:
-        results=await asyncio.gather(*(fetch(client,s) for s in SYMBOLS))
-    coins={s:d for s,d in results};valid=[d for d in coins.values() if 'price' in d]
-    combined='WAIT';combined_series=[];buy_pct=None
-    if len(valid)>=8:
-        up=sum(d['signal']=='UP' for d in valid);down=sum(d['signal']=='DOWN' for d in valid)
-        if up>=math.ceil(len(valid)*.7):combined='UP'
-        elif down>=math.ceil(len(valid)*.7):combined='DOWN'
-        combined_series=[round(sum(d['series'][i] for d in valid)/len(valid),4) for i in range(30)]
-        total_buy=sum(d['buy_volume']*d['price'] for d in valid);total_sell=sum(d['sell_volume']*d['price'] for d in valid)
-        if total_buy+total_sell:buy_pct=round(100*total_buy/(total_buy+total_sell),1)
-    payload={'source':'Public Binance spot USDT markets (NOT Binomo IDX)','timeframe':'1m closed candles','generated_at':int(now),'refresh_seconds':60,'valid_markets':len(valid),'total_markets':len(SYMBOLS),'status':'live' if len(valid)==10 else 'partial' if valid else 'unavailable','coins':coins,'combined_signal':combined,'combined_series':combined_series,'combined_buy_pct':buy_pct,'disclaimer':'Spot market indicator, not a prediction or Binomo signal. WAIT on insufficient consensus/data.'}
-    _cache.update(at=now,value=payload)
-    return payload
+    async with _lock:
+        if _cache["payload"] is None or time.time() - _cache["time"] >= TTL:
+            _cache["payload"] = await build_payload()
+            _cache["time"] = time.time()
+        return _cache["payload"]
