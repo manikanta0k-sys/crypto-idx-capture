@@ -5,7 +5,7 @@ CRYPTO 10 MONITOR — iPhone deployment
 3. Render service: Build command `pip install -r requirements.txt`; Start command `uvicorn main:app --host 0.0.0.0 --port $PORT`.
 4. Wait for Render Live, then open https://crypto-idx-capture-1.onrender.com/api/market . It should return JSON with 10 coins. If it reports WAIT or errors, the upstream API may be inaccessible.
 5. GitHub Settings > Pages: Deploy from branch main, folder /(root). Check Actions for successful deployment.
-6. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=10-4strategy-1 in Safari. If an installed PWA shows old content, use Safari and clear site data or remove outdated service worker registration.
+6. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=fresh-v2-20261105 in Safari. If an installed PWA shows old content, use Safari and clear site data or remove outdated service worker registration.
 
 Data: Binance public spot USDT pairs. NOT Binomo Crypto IDX. 60-second auto refresh while page open. Render free service may sleep and wake slowly.
 
