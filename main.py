@@ -121,9 +121,15 @@ def signal():
             ).isoformat()
         }
 
-    except Exception:
+   
+    except Exception as error:
+        print("SIGNAL ERROR:", repr(error), flush=True)
         return {
             "signal": "WAIT",
-            "reason": "Market data unavailable"
+            "reason": "Market data unavailable",
+            "error_type": type(error).__name__,
+            "error_detail": str(error)
+        }
+ta unavailable"
         }
 
