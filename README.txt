@@ -1,17 +1,14 @@
-CRYPTO 10 MONITOR — iPhone deployment
+CRYPTO 10 MARKET MONITOR — IPHONE SETUP
 
-1. Back up existing files in GitHub repo manikanta0k-sys/crypto-idx-capture.
-2. Replace main.py, requirements.txt and index.html in the repository ROOT with these files. Commit changes.
-3. Render service: Build command `pip install -r requirements.txt`; Start command `uvicorn main:app --host 0.0.0.0 --port $PORT`.
-4. Wait for Render Live, then open https://crypto-idx-capture-1.onrender.com/api/market . It should return JSON with 10 coins. If it reports WAIT or errors, the upstream API may be inaccessible.
-5. GitHub Settings > Pages: Deploy from branch main, folder /(root). Check Actions for successful deployment.
-6. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=fresh-v2-20261105 in Safari. If an installed PWA shows old content, use Safari and clear site data or remove outdated service worker registration.
+1. Unzip this file using the iPhone Files app.
+2. In GitHub repository manikanta0k-sys/crypto-idx-capture, upload index.html, main.py, requirements.txt into the repository ROOT. Overwrite existing files and commit to main.
+3. GitHub Settings > Pages > Deploy from a branch > main > /(root) > Save.
+4. In Render, open your existing Web Service. Verify it is connected to the same repository and main branch.
+5. Render settings: Runtime Python; Build Command: pip install -r requirements.txt; Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+6. Deploy latest commit manually if automatic deploy is disabled. Wait for status Live.
+7. Test https://crypto-idx-capture-1.onrender.com/api/market — should return JSON with status, coins, combined_signal.
+8. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=4
 
-Data: Binance public spot USDT pairs. NOT Binomo Crypto IDX. 60-second auto refresh while page open. Render free service may sleep and wake slowly.
+IMPORTANT: If Binance blocks Render's IP, the API will show unavailable and WAIT. This is an honest error; don't interpret placeholder bars as real data. The server tries two Binance public endpoints, but some environments block both. If so, the feed needs to be replaced with a supported provider.
 
-PDF methods: PSAR(0.02,0.2) + BB midline(20), Heikin Ashi candle, support/resistance approximate range bounce, AO(5,34) + RSI(14) simultaneous 50 and zero cross.
-The range method is an approximation; PDFs do not establish precise programmable thresholds. Strategies are not validated on Binomo Crypto IDX.
-
-Buy/sell percentages: based on last five completed 1-minute candle taker buy quote volume / total quote volume, remaining volume counted as taker sell. NOT order-book depth, not number of buyers or sellers.
-
-Known limitations: fixed 10-symbol list, no top-10 market-cap auto-selection; markets can be unavailable by region. Free Render may cold-start. Some coin indicators may show WAIT often because PDF rules require simultaneous crosses. No automated trading or success probabilities.
+This dashboard is public spot data, NOT Binomo Crypto IDX. 60-second refresh runs while Safari page is active.
