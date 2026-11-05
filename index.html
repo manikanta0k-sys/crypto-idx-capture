@@ -15,40 +15,179 @@
 </style>
 </head>
 <body>
-<main class="wrap">
-<header><div><h1>◆ Crypto IDX Monitor</h1><p>10 cryptocurrencies · One combined market-direction indication</p></div><div class="pill" id="connection">● Connecting…</div></header>
-<section class="hero"><div class="eyebrow">Combined market analysis</div><div class="signal wait" id="signal">WAIT</div><p id="reason">Waiting for sufficient market data</p><div class="stats"><span id="votes">UP 0 · DOWN 0 · WAIT 10</span><span id="updated">Not updated</span></div><p class="note" id="autoStatus" aria-live="polite">Auto refresh every 60 seconds while app is open</p><div class="actions"><button id="refresh">Refresh analysis</button><button class="secondary" id="install" hidden>Install app</button></div></section>
-<h2>Market breakdown</h2><div class="grid" id="coinList"></div>
-<details><summary>Show calculation details</summary><p class="note">Each symbol uses the last 55 or more closed 1-minute Binance candles. EMA(9) vs EMA(21), RSI(14), and latest candle direction each contribute one vote. A coin shows UP when at least two indicators favor UP, DOWN when at least two favor DOWN, otherwise WAIT. The combined signal needs at least 7 of 10 coins to agree; otherwise WAIT. This is a heuristic, not a calibrated probability or a Binomo signal.</p></details>
-<h2>Recent analyses</h2><ul class="history" id="history"><li class="muted">No analyses yet</li></ul>
-<footer>Market data: Binance public endpoints where available. No Binomo integration or automatic trading. Financial risk: short-duration price movements are unpredictable.</footer>
-</main>
-<script>
-'use strict';
-const SYMBOLS=['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','ADAUSDT','DOGEUSDT','TRXUSDT','AVAXUSDT','LINKUSDT'];
-const $=id=>document.getElementById(id);let busy=false;let deferredPrompt=null;let history=[];let nextRefresh=Date.now()+60000;let lastSuccess=0;
-try{history=JSON.parse(localStorage.getItem('cryptoSignalHistory')||'[]')}catch(e){}
-function ema(xs,n){const a=2/(n+1);let v=xs[0];return xs.map((x,i)=>v=i?v+(x-v)*a:x)}
-function rsi(xs,n=14){if(xs.length<n+2)return null;let gains=0,losses=0;for(let i=1;i<=n;i++){const d=xs[i]-xs[i-1];gains+=Math.max(d,0);losses+=Math.max(-d,0)}let gain=gains/n,loss=losses/n;for(let i=n+1;i<xs.length;i++){const d=xs[i]-xs[i-1];gain=(gain*(n-1)+Math.max(d,0))/n;loss=(loss*(n-1)+Math.max(-d,0))/n}return loss===0?100:100-100/(1+gain/loss)}
-function calculate(symbol,rows){const now=Date.now();const closed=rows.filter(r=>Number(r[6])<now-1000);if(closed.length<55)throw Error('Insufficient closed candles');const closes=closed.map(r=>Number(r[4]));const fast=ema(closes,9).at(-1),slow=ema(closes,21).at(-1),strength=rsi(closes);const latest=closes.at(-1),previous=closes.at(-2);let up=0,down=0;fast>slow?up++:fast<slow?down++:null;strength>55?up++:strength<45?down++:null;latest>previous?up++:latest<previous?down++:null;return {symbol,price:latest,rsi:strength,ema9:fast,ema21:slow,signal:up>=2?'UP':down>=2?'DOWN':'WAIT',up,down}}
-async function fetchCoin(symbol){const hosts=['https://data-api.binance.vision','https://api.binance.com'];let error;for(const host of hosts){const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),9000);try{const response=await fetch(`${host}/api/v3/klines?symbol=${symbol}&interval=1m&limit=70`,{signal:ctrl.signal,cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);const rows=await response.json();return calculate(symbol,rows)}catch(e){error=e}finally{clearTimeout(timer)}}throw Error(`${symbol}: ${error?.message||'Data unavailable'}`)}
-function renderCards(results){$('coinList').replaceChildren();for(const r of results){const div=document.createElement('div');div.className='card';const title=document.createElement('div');title.className='row';const name=document.createElement('strong');name.textContent=r.symbol;const sig=document.createElement('b');sig.className=(r.signal||'WAIT').toLowerCase();sig.textContent=r.signal||'ERROR';title.append(name,sig);const price=document.createElement('div');price.className='value';price.textContent=r.price===undefined?'Unavailable':r.price.toLocaleString('en-US',{maximumFractionDigits:6});const detail=document.createElement('div');detail.className='muted';detail.textContent=r.price===undefined?(r.error||'No data'):`RSI ${r.rsi.toFixed(1)} · EMA9 ${r.ema9.toFixed(4)} · EMA21 ${r.ema21.toFixed(4)}`;div.append(title,price,detail);$('coinList').append(div)}}
-function renderHistory(){$('history').replaceChildren();if(!history.length){const li=document.createElement('li');li.textContent='No analyses yet';$('history').append(li);return}for(const h of history){const li=document.createElement('li');const time=document.createElement('span');time.textContent=new Date(h.time).toLocaleString();const label=document.createElement('strong');label.className=h.signal.toLowerCase();label.textContent=`${h.signal} · ${h.up} UP / ${h.down} DOWN / ${h.wait} WAIT`;li.append(time,label);$('history').append(li)}}
-async function refresh(){if(busy)return;busy=true;$('refresh').disabled=true;$('connection').textContent='● Updating';const results=await Promise.allSettled(SYMBOLS.map(fetchCoin));const ok=results.filter(r=>r.status==='fulfilled').map(r=>r.value);const cards=results.map((r,i)=>r.status==='fulfilled'?r.value:{symbol:SYMBOLS[i],signal:'ERROR',error:r.reason?.message||'Unavailable'});renderCards(cards);let signal='WAIT',reason='';const up=ok.filter(x=>x.signal==='UP').length,down=ok.filter(x=>x.signal==='DOWN').length,wait=ok.filter(x=>x.signal==='WAIT').length;if(ok.length!==SYMBOLS.length){reason=`Only ${ok.length}/10 markets available. Signal withheld.`;$('connection').textContent='● Partial data'}else{signal=up>=7?'UP':down>=7?'DOWN':'WAIT';reason=signal==='WAIT'?'No strong agreement across the 10 markets':`${up>down?up:down} of 10 markets favor ${signal}`;$('connection').textContent='● Data updated'}$('signal').textContent=signal;$('signal').className='signal '+signal.toLowerCase();$('reason').textContent=reason;$('votes').textContent=`UP ${up} · DOWN ${down} · WAIT ${wait} · Unavailable ${10-ok.length}`;$('updated').textContent=new Date().toLocaleTimeString();if(ok.length===SYMBOLS.length)lastSuccess=Date.now();nextRefresh=Date.now()+60000;history.unshift({time:Date.now(),signal,up,down,wait});history=history.slice(0,20);try{localStorage.setItem('cryptoSignalHistory',JSON.stringify(history))}catch(e){}renderHistory();busy=false;$('refresh').disabled=false}
-$('refresh').addEventListener('click',refresh);renderHistory();refresh();
-function tickAuto(){
-  const now=Date.now();
-  if(document.visibilityState==='visible' && !busy && now>=nextRefresh){nextRefresh=now+60000;refresh();}
-  const remaining=Math.max(0,Math.ceil((nextRefresh-now)/1000));
-  const stale=lastSuccess && now-lastSuccess>120000;
-  $('autoStatus').textContent=(stale?'⚠ Data may be stale · ':'● Auto mode ON · ')+`Next check in ${remaining}s · Every 60s while open`;
-}
-setInterval(tickAuto,1000);tickAuto();
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible' && !busy){nextRefresh=Date.now()+60000;refresh();}});
-window.addEventListener('online',()=>{if(!busy){nextRefresh=Date.now()+60000;refresh();}});
 
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('install').hidden=false});$('install').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('install').hidden=true});
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.warn));
+<!-- PYTHON LIVE SIGNAL PANEL -->
+<div id="python-live-panel" style="
+  margin:20px auto;
+  padding:20px;
+  max-width:700px;
+  border:1px solid #24466a;
+  border-radius:16px;
+  background:#0b1830;
+  color:white;
+  font-family:Arial,sans-serif;
+  text-align:center;
+">
+  <h2>Python Live Signal</h2>
+  <p id="py-connection">Connecting to Python...</p>
+
+  <div id="py-signal" style="
+    font-size:52px;
+    font-weight:bold;
+    color:#facc15;
+    margin:15px 0;
+  ">WAIT</div>
+
+  <p id="py-indicators">Loading indicators...</p>
+  <p id="py-updated">Last update: --</p>
+  <p id="py-countdown">Next update: --</p>
+
+  <button id="py-refresh" type="button" style="
+    background:#16a085;
+    color:white;
+    border:0;
+    border-radius:8px;
+    padding:12px 24px;
+    cursor:pointer;
+  ">Refresh Python Signal</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const API =
+    "https://crypto-idx-capture-1.onrender.com/signal";
+
+  const INTERVAL = 60000;
+
+  const $ = id => document.getElementById(id);
+
+  let lastAttempt = 0;
+  let busy = false;
+
+  async function updatePythonSignal() {
+    if (busy) return;
+
+    busy = true;
+    lastAttempt = Date.now();
+
+    $("py-connection").textContent = "Updating...";
+
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      25000
+    );
+
+    try {
+      const response = await fetch(API, {
+        cache: "no-store",
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        throw new Error("API HTTP " + response.status);
+      }
+
+      const data = await response.json();
+
+      const valid =
+        data &&
+        ["UP", "DOWN", "WAIT"].includes(data.signal);
+
+      if (!valid) {
+        throw new Error("Invalid signal response");
+      }
+
+      if (data.error || data.reason) {
+        throw new Error(
+          data.reason || "Market data unavailable"
+        );
+      }
+
+      const signal = data.signal;
+
+      $("py-signal").textContent = signal;
+
+      $("py-signal").style.color =
+        signal === "UP" ? "#22c55e" :
+        signal === "DOWN" ? "#ef4444" :
+        "#facc15";
+
+      const format = (value, digits = 2) =>
+        typeof value === "number"
+          ? value.toFixed(digits)
+          : "--";
+
+      $("py-indicators").textContent =
+        "RSI: " + format(data.rsi) +
+        " | EMA9: " + format(data.ema9) +
+        " | EMA21: " + format(data.ema21) +
+        " | MACD: " + format(data.macd, 4);
+
+      $("py-connection").textContent =
+        "Connected | Binance BTCUSDT";
+
+      $("py-updated").textContent =
+        "Last update: " +
+        new Date().toLocaleTimeString();
+
+    } catch (error) {
+      $("py-signal").textContent = "WAIT";
+      $("py-signal").style.color = "#facc15";
+
+      $("py-connection").textContent =
+        "Connection issue: " + error.message;
+
+      $("py-indicators").textContent =
+        "No verified fresh signal";
+
+    } finally {
+      clearTimeout(timeout);
+      busy = false;
+    }
+  }
+
+  function countdown() {
+    const remaining = Math.max(
+      0,
+      Math.ceil(
+        (INTERVAL - (Date.now() - lastAttempt)) / 1000
+      )
+    );
+
+    $("py-countdown").textContent =
+      "Next update: " + remaining + "s";
+  }
+
+  $("py-refresh").addEventListener(
+    "click",
+    updatePythonSignal
+  );
+
+  updatePythonSignal();
+
+  setInterval(() => {
+    if (!document.hidden &&
+        Date.now() - lastAttempt >= INTERVAL) {
+      updatePythonSignal();
+    }
+  }, 1000);
+
+  setInterval(countdown, 1000);
+
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (!document.hidden &&
+          Date.now() - lastAttempt >= INTERVAL) {
+        updatePythonSignal();
+      }
+    }
+  );
+})();
 </script>
+<!-- END PYTHON LIVE SIGNAL PANEL -->
 </body>
 </html>
