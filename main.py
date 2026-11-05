@@ -3,15 +3,17 @@ import asyncio
 import math
 import os
 import time
+import io
+from PIL import Image, ImageOps
 from datetime import datetime, timezone
 from statistics import mean
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Crypto 10 Market Monitor - Kraken Spot", version="2.0")
-app.add_middleware(CORSMiddleware, allow_origins=["https://manikanta0k-sys.github.io", "http://localhost:8000"], allow_methods=["GET"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["https://manikanta0k-sys.github.io", "http://localhost:8000"], allow_methods=["GET", "POST"], allow_headers=["*"])
 
 PAIRS = {"BTC": "XBTUSD", "ETH": "ETHUSD", "BNB": "BNBUSD", "SOL": "SOLUSD", "XRP": "XRPUSD", "ADA": "ADAUSD", "DOGE": "DOGEUSD", "TRX": "TRXUSD", "AVAX": "AVAXUSD", "LINK": "LINKUSD"}
 BASE = "https://api.kraken.com/0/public"
@@ -157,3 +159,69 @@ async def market():
             _cache["payload"] = await build_payload()
             _cache["time"] = time.time()
         return _cache["payload"]
+
+
+@app.post("/api/analyze-screenshot")
+async def analyze_screenshot(file: UploadFile = File(...)):
+    """Conservative color-based visual heuristic; not OCR, OHLC or a forecast."""
+    if file.content_type not in ("image/png", "image/jpeg", "image/webp"):
+        raise HTTPException(400, "Use PNG, JPEG or WebP (iPhone screenshot PNG works).")
+    raw = await file.read(6 * 1024 * 1024 + 1)
+    if len(raw) > 6 * 1024 * 1024:
+        raise HTTPException(413, "Screenshot must be under 6 MB.")
+    try:
+        image = ImageOps.exif_transpose(Image.open(io.BytesIO(raw)))
+        if image.width * image.height > 12000000:
+            raise ValueError("Image too large")
+        image = image.convert("RGB")
+    except Exception:
+        raise HTTPException(400, "Unable to read screenshot")
+    # Crop center to reduce headers, controls, labels. This is NOT a chart detector.
+    w,h = image.size
+    area = image.crop((int(w*.12), int(h*.22), int(w*.90), int(h*.79)))
+    area.thumbnail((600, 350))
+    w,h=area.size
+    pix=area.load()
+    # Find tall clusters of vivid red or green pixels by x-coordinate.
+    # UI accents can resemble candles, so conservative abstention is essential.
+    columns=[]
+    for x in range(w):
+        green=red=0
+        for y in range(0,h,2):
+            r,g,b=pix[x,y]
+            if g>105 and g>r*1.34 and g>b*1.10 and g-r>35: green+=1
+            elif r>125 and r>g*1.35 and r>b*1.16 and r-g>40: red+=1
+        columns.append((green,red))
+    threshold=max(3,int(h*.026))
+    runs=[]; start=None; prev=None
+    for x,(g,r) in enumerate(columns):
+        typ='UP' if g>=threshold and g>r*2 else 'DOWN' if r>=threshold and r>g*2 else None
+        if typ != prev:
+            if prev and start is not None: runs.append((start,x-1,prev))
+            start=x if typ else None;prev=typ
+    if prev and start is not None:runs.append((start,w-1,prev))
+    # Very wide runs tend to be UI bars rather than candles.
+    runs=[r for r in runs if 1 <= r[1]-r[0]+1 <= max(14,int(w*.045))]
+    recent=runs[-7:]
+    ups=sum(r[2]=='UP' for r in recent);downs=len(recent)-ups
+    bias='WAIT'
+    if len(runs)>=12 and len(recent)>=7:
+        if ups>=6:bias='UP'
+        elif downs>=6:bias='DOWN'
+    explanation=("Green-colored shapes dominate the right side of the detected region." if bias=='UP' else
+                 "Red-colored shapes dominate the right side of the detected region." if bias=='DOWN' else
+                 "No sufficiently clear directional pattern was detected. The safest output is WAIT.")
+    return {
+        "instrument":"Binomo Crypto IDX (user-provided screenshot, unverified)",
+        "method":"Experimental color-shape heuristic; no verified candle extraction",
+        "directional_bias":bias,
+        "horizon_minutes":[2,3],
+        "horizon_prediction_available":False,
+        "detected_color_runs":len(runs),
+        "recent_up_color_runs":ups,
+        "recent_down_color_runs":downs,
+        "explanation":explanation,
+        "warning":"Not a reliable 2- or 3-minute forecast. Chart theme, UI colors, cropped candles and overlays can cause false readings. No RSI, AO, PSAR or Bollinger calculations from this screenshot. Do not use as a trading instruction.",
+        "processed_at":int(time.time()),
+        "stored":False
+    }

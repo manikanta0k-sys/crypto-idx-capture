@@ -1,11 +1,19 @@
-CRYPTO 10 — GITHUB + RENDER
+Crypto 10 + Binomo Crypto IDX Screenshot Analysis (experimental)
 
-1. Upload index.html, main.py, requirements.txt directly into the ROOT of your existing GitHub repository. Overwrite older files.
-2. GitHub repository Settings > Pages: Deploy from a branch > main > /(root) > Save.
-3. Render: Existing Web Service must point to this GitHub repo and main branch. Set Root Directory empty, Build Command: pip install -r requirements.txt
-4. Render Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
-5. Render: Manual Deploy > Deploy latest commit (unless automatic deployment occurs).
-6. Check https://crypto-idx-capture-1.onrender.com/api/market. It should say source: Kraken and valid_markets > 0 if Render can reach Kraken.
-7. Check https://manikanta0k-sys.github.io/crypto-idx-capture/?v=kraken2
+FILES TO REPLACE IN YOUR EXISTING GITHUB REPOSITORY ROOT:
+  index.html
+  main.py
+  requirements.txt
 
-No Binance. Kraken OHLC is public; some markets may be unsupported or blocked by the hosting provider. Data failures display unavailable/WAIT. 60-second server cache. Buy/sell executed trade volumes cannot be derived from OHLC, so the UI marks them unavailable. No trading execution and no Binomo IDX integration.
+Render: Build: pip install -r requirements.txt
+Render: Start: uvicorn main:app --host 0.0.0.0 --port $PORT
+Render: Manual Deploy > Deploy latest commit, if needed.
+GitHub Pages: Settings > Pages > Deploy from branch main / (root).
+
+TEST:
+GET https://crypto-idx-capture-1.onrender.com/api/market
+POST https://crypto-idx-capture-1.onrender.com/api/analyze-screenshot (multipart form field named file)
+Open your GitHub Pages dashboard with ?v=shot2 after deploy.
+
+Screenshot: PNG/JPEG/WebP <= 6 MB. Screenshot is sent to Render for transient analysis and is not stored by this code. Crop out personal/account details before upload. The visual analysis detects color runs and is NOT verified candlestick recognition, NOT indicator calculations, and NOT a reliable 2-3 minute forecast. It abstains with WAIT when unclear. Results must not be used as trading instructions.
+Kraken market data still updates every 60 seconds while the page is visible.
