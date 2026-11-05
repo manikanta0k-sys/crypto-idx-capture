@@ -200,28 +200,44 @@ async def analyze_screenshot(file: UploadFile = File(...)):
             if prev and start is not None: runs.append((start,x-1,prev))
             start=x if typ else None;prev=typ
     if prev and start is not None:runs.append((start,w-1,prev))
-    # Very wide runs tend to be UI bars rather than candles.
+    # Colored regions are not verified candles. Reject very wide UI elements.
     runs=[r for r in runs if 1 <= r[1]-r[0]+1 <= max(14,int(w*.045))]
-    recent=runs[-7:]
-    ups=sum(r[2]=='UP' for r in recent);downs=len(recent)-ups
-    bias='WAIT'
-    if len(runs)>=12 and len(recent)>=7:
-        if ups>=6:bias='UP'
-        elif downs>=6:bias='DOWN'
-    explanation=("Green-colored shapes dominate the right side of the detected region." if bias=='UP' else
-                 "Red-colored shapes dominate the right side of the detected region." if bias=='DOWN' else
-                 "No sufficiently clear directional pattern was detected. The safest output is WAIT.")
+    recent=runs[-10:]
+    up=sum(r[2]=='UP' for r in recent)
+    down=len(recent)-up
+    last5=recent[-5:]
+    last5_up=sum(r[2]=='UP' for r in last5)
+    last5_down=len(last5)-last5_up
+    issues=[]
+    if len(runs)<18: issues.append('Too few candle-like shapes detected')
+    if len(recent)<10: issues.append('Insufficient recent shapes')
+    if max(up,down)<7: issues.append('Recent colors are mixed')
+    # 2-minute bias is a descriptive, short-horizon visual momentum label only.
+    # 3-minute outlook is more conservative because a single screenshot cannot
+    # establish how momentum will persist across several future candles.
+    two='WAIT'; three='WAIT'
+    if not issues:
+        if up>=8 and last5_up>=4: two='UP BIAS'
+        elif down>=8 and last5_down>=4: two='DOWN BIAS'
+        if up>=9 and last5_up==5: three='UP BIAS'
+        elif down>=9 and last5_down==5: three='DOWN BIAS'
+    agreement = max(up,down)/len(recent) if recent else 0
+    # Evidence strength is NOT a calibrated chance of future price direction.
+    strength='limited' if two=='WAIT' else 'moderate visual agreement'
+    details=(f'{up} green-like and {down} red-like regions among the last '
+             f'{len(recent)} detected shapes; {last5_up} green-like among the last {len(last5)}.')
     return {
-        "instrument":"Binomo Crypto IDX (user-provided screenshot, unverified)",
-        "method":"Experimental color-shape heuristic; no verified candle extraction",
-        "directional_bias":bias,
-        "horizon_minutes":[2,3],
-        "horizon_prediction_available":False,
-        "detected_color_runs":len(runs),
-        "recent_up_color_runs":ups,
-        "recent_down_color_runs":downs,
-        "explanation":explanation,
-        "warning":"Not a reliable 2- or 3-minute forecast. Chart theme, UI colors, cropped candles and overlays can cause false readings. No RSI, AO, PSAR or Bollinger calculations from this screenshot. Do not use as a trading instruction.",
-        "processed_at":int(time.time()),
-        "stored":False
+        'instrument':'Binomo Crypto IDX (claimed by uploader; not independently verified)',
+        'method':'Experimental pixel-color inspection; candle positions and OHLC not verified',
+        'two_minute':{'bias':two,'evidence_strength':strength,'explanation':details},
+        'three_minute':{'bias':three,'evidence_strength':'very limited' if three!='WAIT' else 'insufficient',
+                        'explanation':'Longer horizon requires more evidence; '+details},
+        'directional_bias':two.replace(' BIAS',''),
+        'quality':{'detected_shapes':len(runs),'recent_shapes':len(recent),
+                   'limitations':issues or ['Color shapes may include interface elements, not candles']},
+        'indicator_verification':{'psar_bollinger':'not available', 'heikin_ashi':'not verified',
+                                  'range_ribbon':'not verified', 'awesome_rsi':'not available'},
+        'confidence_note':'Evidence strength describes agreement among detected colors, NOT probability of a correct forecast.',
+        'warning':'Neither 2-minute nor 3-minute output is a validated prediction. Colors alone do not reveal OHLC, RSI, AO, PSAR, or support/resistance. Do not treat this as a trade recommendation.',
+        'processed_at':int(time.time()), 'stored':False
     }
