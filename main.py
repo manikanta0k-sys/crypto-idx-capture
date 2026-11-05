@@ -1,94 +1,83 @@
+import os, csv, io, math, time
+from collections import deque
 from datetime import datetime, timezone
-import logging
-import requests
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('crypto-signal')
-app = FastAPI(title='Crypto Signal API')
-app.add_middleware(CORSMiddleware, allow_origins=['https://manikanta0k-sys.github.io'], allow_methods=['GET'], allow_headers=['*'])
-URL = 'https://api.binance.com/api/v3/klines'
+app = FastAPI(title='Binomo Crypto IDX — authorized data only')
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['GET','POST'], allow_headers=['*'])
+CANDLES = deque(maxlen=1500)
+HISTORY = deque(maxlen=120)
+LAST_KEY = None
 
-def candles():
-    response = requests.get(URL, params={'symbol': 'BTCUSDT', 'interval': '1m', 'limit': 120}, timeout=12)
-    response.raise_for_status()
-    data = response.json()
-    if not isinstance(data, list):
-        raise ValueError('Unexpected market-data response')
-    now = int(datetime.now(timezone.utc).timestamp() * 1000)
-    closed = [row for row in data if isinstance(row, list) and len(row) > 6 and int(row[6]) < now]
-    if len(closed) < 40:
-        raise ValueError('Insufficient completed candles')
-    if now - int(closed[-1][6]) > 180000:
-        raise ValueError('Market data is stale')
-    return closed
-
-def ema_series(values, period):
-    k = 2 / (period + 1)
-    output = [values[0]]
-    for value in values[1:]:
-        output.append(value * k + output[-1] * (1 - k))
-    return output
+def ema(values, period):
+    k=2/(period+1); out=[]; v=values[0]
+    for x in values:
+        v=x*k+v*(1-k); out.append(v)
+    return out
 
 def rsi(values, period=14):
-    changes = [values[i] - values[i - 1] for i in range(1, len(values))]
-    gains = [max(0, x) for x in changes]
-    losses = [max(0, -x) for x in changes]
-    gain = sum(gains[:period]) / period
-    loss = sum(losses[:period]) / period
-    for i in range(period, len(gains)):
-        gain = (gain * (period - 1) + gains[i]) / period
-        loss = (loss * (period - 1) + losses[i]) / period
-    if loss == 0:
-        return 100.0 if gain else 50.0
-    return 100 - 100 / (1 + gain / loss)
+    changes=[values[i]-values[i-1] for i in range(1,len(values))]
+    gains=[max(x,0) for x in changes]; losses=[max(-x,0) for x in changes]
+    ag=sum(gains[:period])/period; al=sum(losses[:period])/period
+    for g,l in zip(gains[period:],losses[period:]):
+        ag=(ag*(period-1)+g)/period; al=(al*(period-1)+l)/period
+    return 100 if al==0 and ag>0 else 50 if al==0 else 100-100/(1+ag/al)
+
+def analysis():
+    global LAST_KEY
+    data=list(CANDLES)
+    base={'source':'Binomo Crypto IDX (user-provided authorized candles)', 'symbol':'Crypto IDX', 'timeframe':'1m', 'signal':'WAIT', 'reason':'NO DATA — upload authorized Binomo Crypto IDX CSV', 'candles':len(data),'history':list(HISTORY), 'graph':[]}
+    if len(data)<35:
+        base['reason']=f'Need at least 35 completed 1-minute candles; received {len(data)}'
+        return base
+    closes=[x['close'] for x in data]; e9=ema(closes,9); e21=ema(closes,21)
+    macd_line=[a-b for a,b in zip(ema(closes,12),ema(closes,26))]
+    macd_sig=ema(macd_line,9)
+    current_rsi=rsi(closes)
+    bullish=int(e9[-1]>e21[-1])+int(macd_line[-1]>macd_sig[-1])+int(current_rsi>55)
+    bearish=int(e9[-1]<e21[-1])+int(macd_line[-1]<macd_sig[-1])+int(current_rsi<45)
+    signal='UP' if bullish==3 else 'DOWN' if bearish==3 else 'WAIT'
+    key=(data[-1]['time'],signal)
+    if key!=LAST_KEY:
+        HISTORY.append({'time':data[-1]['time'],'signal':signal,'rsi':round(current_rsi,2)})
+        LAST_KEY=key
+    base.update(signal=signal, reason='Indicators agree' if signal!='WAIT' else 'Mixed indicators', price=closes[-1],rsi=round(current_rsi,2),ema9=round(e9[-1],5),ema21=round(e21[-1],5),macd=round(macd_line[-1],6),macd_signal=round(macd_sig[-1],6), last_candle=data[-1]['time'],history=list(HISTORY),graph=data[-120:])
+    return base
 
 @app.get('/')
-def home():
-    return {'status': 'Python is running', 'endpoints': ['/health', '/test-binance', '/signal']}
-
-@app.get('/health')
-def health():
-    return {'status': 'ok'}
-
-@app.get('/test-binance')
-def test_binance():
-    try:
-        rows = candles()
-        return {'status': 'ok', 'source': 'Binance', 'closed_candles': len(rows), 'last_close_time_ms': int(rows[-1][6])}
-    except requests.HTTPError as exc:
-        code = exc.response.status_code if exc.response is not None else None
-        logger.warning('Binance HTTP error: %s', code)
-        return {'status': 'error', 'type': 'http_error', 'http_status': code}
-    except requests.Timeout:
-        return {'status': 'error', 'type': 'timeout'}
-    except requests.RequestException:
-        logger.exception('Binance network error')
-        return {'status': 'error', 'type': 'network_error'}
-    except (ValueError, IndexError, TypeError):
-        logger.exception('Invalid or stale market data')
-        return {'status': 'error', 'type': 'invalid_or_stale_data'}
+def root(): return {'status':'running','market':'Binomo Crypto IDX only','live_feed_connected':False,'note':'Upload authorized completed candles; no exchange substitution'}
 
 @app.get('/signal')
-def signal():
+def signal(): return analysis()
+
+@app.post('/candles')
+async def upload_candles(file: UploadFile=File(...), x_upload_token: str | None=Header(default=None)):
+    expected=os.getenv('UPLOAD_TOKEN')
+    if not expected:
+        raise HTTPException(503,'Set UPLOAD_TOKEN in Render environment before uploading')
+    if x_upload_token!=expected:
+        raise HTTPException(401,'Invalid upload token')
+    raw=await file.read()
+    if len(raw)>2_000_000: raise HTTPException(413,'CSV too large (2 MB maximum)')
     try:
-        rows = candles()
-        prices = [float(row[4]) for row in rows]
-        ema9 = ema_series(prices, 9)[-1]
-        ema21 = ema_series(prices, 21)[-1]
-        fast = ema_series(prices, 12)
-        slow = ema_series(prices, 26)
-        macd_values = [a - b for a, b in zip(fast, slow)]
-        macd = macd_values[-1]
-        macd_signal = ema_series(macd_values, 9)[-1]
-        strength = rsi(prices)
-        direction = 'WAIT'
-        if ema9 > ema21 and strength > 55 and macd > macd_signal:
-            direction = 'UP'
-        elif ema9 < ema21 and strength < 45 and macd < macd_signal:
-            direction = 'DOWN'
-        return {'source': 'Binance', 'symbol': 'BTCUSDT', 'timeframe': '1m', 'signal': direction, 'price': prices[-1], 'rsi': round(strength, 2), 'ema9': round(ema9, 2), 'ema21': round(ema21, 2), 'macd': round(macd, 4), 'macd_signal': round(macd_signal, 4), 'candle_close_ms': int(rows[-1][6])}
-    except Exception:
-        logger.exception('Signal calculation failed')
-        return {'signal': 'WAIT', 'reason': 'Market data or calculation unavailable'}
+        reader=csv.DictReader(io.StringIO(raw.decode('utf-8-sig')))
+        rows=[]
+        for r in reader:
+            r={str(k).strip().lower():v for k,v in r.items() if k is not None}
+            stamp=r.get('time') or r.get('timestamp') or r.get('date')
+            if not stamp: raise ValueError('Missing time/timestamp/date column')
+            o,h,l,c=[float(r[k]) for k in ('open','high','low','close')]
+            if not all(math.isfinite(v) for v in (o,h,l,c)) or min(o,h,l,c)<=0 or h<max(o,c,l) or l>min(o,c,h):
+                raise ValueError('Invalid OHLC values')
+            rows.append({'time':str(stamp),'open':o,'high':h,'low':l,'close':c})
+        if not rows: raise ValueError('No candle rows')
+        if len(rows)>1500: rows=rows[-1500:]
+        if len({x['time'] for x in rows})!=len(rows): raise ValueError('Duplicate timestamps')
+        if rows!=sorted(rows,key=lambda x:x['time']): raise ValueError('Candles must be in chronological order')
+    except (ValueError,KeyError,UnicodeError) as e:
+        raise HTTPException(400,f'Invalid CSV: {e}')
+    CANDLES.clear(); CANDLES.extend(rows); HISTORY.clear()
+    global LAST_KEY
+    LAST_KEY=None
+    return {'accepted':len(rows),'source':'User-provided Binomo Crypto IDX candles','signal':analysis()['signal']}
