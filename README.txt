@@ -1,17 +1,18 @@
-BINOMO CRYPTO IDX — AUTHORIZED DATA ONLY
+50-COIN CRYPTO MARKET ANALYZER — SETUP
 
-1. GitHub repo: replace index.html with supplied index.html and commit.
-2. Render repo: replace main.py, requirements.txt with supplied files and commit.
-3. Render dashboard > Environment: set UPLOAD_TOKEN to a long random secret (NOT Binomo credentials).
-4. Render build: pip install -r requirements.txt
-5. Render start: uvicorn main:app --host 0.0.0.0 --port $PORT
-6. Open your GitHub Pages app, select a CSV of ACTUAL authorized Binomo Crypto IDX completed 1m candles, enter UPLOAD_TOKEN, click Upload.
-7. CSV header: time,open,high,low,close. At least 35 rows, ascending time order.
-8. Example row structure (not real market data): 2026-11-05T12:00:00,100,101,99,100.5
+WARNING: This analyzes public Binance spot-market prices. It is NOT Binomo Crypto IDX.
 
-IMPORTANT: No Binance, no fake candle data, no unofficial private Binomo API.
-This version does NOT automatically fetch live Binomo data. New CSV must be uploaded when available.
-Render free service restarts erase uploaded in-memory candles. For persistent production use, add a database.
-The graph shows one actual Binomo Crypto IDX candle series, and the combined signal merges three indicators; it does not recreate Binomo's proprietary top-10 index formula.
-This is a technical indicator, not a reliable next-candle prediction.
-If your GitHub app uses a service worker, cached pages may need a refresh/reinstall after updating.
+1. BACK UP existing GitHub files first.
+2. Replace main.py and requirements.txt in the root of your existing GitHub repository.
+3. Replace index.html in the same repository root.
+4. Commit changes. If Render auto-deploys from GitHub, wait until the service is Live.
+5. Render start command: uvicorn main:app --host 0.0.0.0 --port $PORT
+6. Verify backend: https://crypto-idx-capture-1.onrender.com/signal
+7. Verify website: https://manikanta0k-sys.github.io/crypto-idx-capture/?v=50
+8. If the old website persists, check GitHub Settings > Pages and the service worker cache.
+
+Data: Binance public REST API, 50 fixed USDT spot pairs. A few may be unavailable or delisted; missing markets are excluded. At least 40 valid markets required for UP/DOWN. Backend cache is 60s; Render free services may sleep and history resets on restart. Binance access may be geographically restricted.
+
+No API key, login, screenshot or trading permissions required. No automatic trading.
+
+Security: the public /signal endpoint does not need credentials. Do not place any exchange login/password in these files.
