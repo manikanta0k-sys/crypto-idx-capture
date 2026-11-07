@@ -1,13 +1,5 @@
-Crypto IDX Monitor — Neon Layout V4
+Crypto IDX Pro Terminal V4
 
-1. Extract ZIP. Upload index.html, main.py, requirements.txt to the ROOT of your existing GitHub repository.
-2. Commit changes. GitHub Pages: Settings > Pages > Deploy from branch > main > /(root).
-3. In Render, connect the same repository and redeploy latest commit.
-   Build: pip install -r requirements.txt
-   Start: uvicorn main:app --host 0.0.0.0 --port $PORT
-4. Check https://crypto-idx-capture-1.onrender.com/api/market
-5. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=neon4
-
-The design resembles the supplied visual reference, but does NOT display fabricated 72% probabilities, fictional MACD/RSI values, or false Binomo live data. The central chart is a real normalized returns LINE graph, not fake candlesticks. Kraken public spot data is separate from Binomo IDX. Screenshot analysis is experimental and manually triggered.
-
-30-second update: frontend refresh interval is 30000 ms and backend cache TTL is 30 seconds.
+Deploy index.html to the root of GitHub Pages repository.
+New BINOMO ANALYSIS PANEL button is pinned to the top. No iframe / white preview. Screenshot scanner and original V3 features preserved.
+Binomo is opened in a separate tab; this is not a live Binomo data integration. No guarantees of future candle directions.
