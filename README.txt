@@ -1,5 +1,4 @@
-Crypto IDX Pro Terminal V4
-
-Deploy index.html to the root of GitHub Pages repository.
-New BINOMO ANALYSIS PANEL button is pinned to the top. No iframe / white preview. Screenshot scanner and original V3 features preserved.
-Binomo is opened in a separate tab; this is not a live Binomo data integration. No guarantees of future candle directions.
+Crypto IDX Pro Terminal V4.1 - Demo Accuracy Tracker
+Upload index.html to GitHub Pages repository root.
+Screenshot estimates are stored automatically; actual candle outcomes must be entered manually after the target candle closes.
+No Binomo live data or automatic trading.
