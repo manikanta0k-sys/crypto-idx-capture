@@ -44,7 +44,7 @@ header{background:#080f1eea}.brand{letter-spacing:.8px}.brand b{color:#63d6ff}
 #mobileV73 h2{margin:0 0 8px;font-size:19px}#mobileV73 .v73hint{color:#b9cce0;font-size:12px;line-height:1.55}#mobileV73 .v73grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:11px 0}#mobileV73 .v73tile{border:1px solid #37536b;border-radius:12px;padding:12px;background:#0d1e2f;min-width:0}#mobileV73 small{display:block;color:#a8c1d4;font-size:11px}#mobileV73 strong{display:block;font-size:19px;margin:6px 0;overflow-wrap:anywhere}#mobileV73 #v73Bias{font-size:32px;color:#d6e4f5}#mobileV73 #v73Bias.down{color:#fb7185}#mobileV73 #v73Bias.up{color:#24d4a2}#mobileV73 button{font-size:13px;padding:12px;margin:7px 5px 7px 0}#mobileV73 #v73Status{white-space:pre-wrap;line-height:1.5;color:#bcd1e0;font-size:12px}#mobileV73 .v73warning{color:#ffd898}
 @media(max-width:450px){#mobileV73{margin:8px 10px 12px;padding:12px}#mobileV73 strong{font-size:16px}#mobileV73 #v73Bias{font-size:27px}#mobileV73 button{width:100%;margin:6px 0}}
 </style></head><body><div id="v4Bar"><strong>◈ CRYPTO IDX PRO V5 · BINOMO RESEARCH</strong><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" type="button" id="v4Open">◫ BINOMO ANALYSIS PANEL</button><a href="https://binomo.com/trading" target="_blank" rel="noopener noreferrer">↗ Open Binomo</a></div></div><section id="v4Panel" role="dialog" aria-modal="true" aria-label="Binomo research companion"><div class="head"><strong>◈ V4 · BINOMO SCREENSHOT RESEARCH</strong><button type="button" id="v4Close">✕ Back to dashboard</button></div><div class="layout"><div class="pane"><h2>01 · Analyze Binomo Screenshot</h2><p>Open Binomo in another tab, capture a screenshot, then return here and upload it in the existing scanner.</p><div class="actions"><button type="button" class="primary" id="v4Scanner">↑ Go to Screenshot Scanner</button><a href="https://binomo.com/trading" target="_blank" rel="noopener noreferrer">↗ Open Binomo</a></div><p class="notice">Binomo does not appear in the embedded preview. This panel intentionally removes the blank iframe. iPhone Chrome cannot display two independent browser tabs side-by-side.</p></div><div class="pane"><h2>02 · Latest Research Readout</h2><div id="v4Bias" class="signal">WAIT</div><p id="v4Reason">Analyze a screenshot in the dashboard to update this readout.</p><hr style="border:0;border-top:1px solid #34516b"><h2>Independent Binance Market Reference</h2><div id="v4Market" class="signal" style="font-size:36px">WAIT</div><p id="v4Status">Binance data is not Binomo Crypto IDX data.</p><p>UP / DOWN / WAIT represents an uncertain indicator bias, not a prediction, probability or trade instruction. No automatic trading or Binomo account access.</p></div></div></section>
-<header><div class="top"><div><div class="brand">◇ CRYPTO IDX <b>PRO TERMINAL V5</b></div><small>Binomo screenshot analysis + live Binance 10-coin market breadth</small></div><span class="tag" id="dataBadge">● NO DATA</span></div></header>
+<header><div class="top"><div><div class="brand">◇ CRYPTO IDX <b>PRO TERMINAL V5</b></div><small>Binomo screenshot analysis (latest 6 closed candles) + separate Binance market breadth</small></div><span class="tag" id="dataBadge">● NO DATA</span></div></header>
 <section id="mobileV73" aria-label="iPhone Brave screenshot research controls">
 <h2>◇ Crypto IDX Pro V7.3 · iPhone Brave</h2>
 <div class="v73hint">Manual screenshot research • no Brave extension required • no automatic Binomo capture. Upload a chart screenshot and tap Analyze screenshot below. Signals are unverified estimates, not trade instructions.</div>
@@ -144,7 +144,23 @@ header{background:#080f1eea}.brand{letter-spacing:.8px}.brand b{color:#63d6ff}
 <div class="count" id="targetCountdown">--:--</div>
 <p class="hint">The research bias is based on a static image. It is forced to WAIT once the target candle starts; uploading a new screenshot is required for a new window. No guaranteed trade direction.</p>
 </div><div class="card"><h2>Minute clock</h2><div class="count" id="clock">--:--</div><p class="hint">Device-clock countdown only. This does not indicate an active Binomo data connection or a signal refresh.</p></div>
-<div class="card"><h2>04 · Multi-strategy research monitor</h2><p class="hint">All calculations use the currently imported candles. Screenshot-derived values are approximate, and strategy names do not imply Binomo endorsement or live connectivity.</p><div class="metricgrid" id="strategyGrid"><div class="metric">Awaiting candle data</div></div><div class="status" id="strategySummary">WAIT · No verified data</div></div><div class="card"><h2>Historical demo backtest</h2><p class="hint">Only enabled for imported, verified 1-minute OHLC CSV. Screenshot-derived values have synthetic timestamps and are unsuitable for meaningful backtesting.</p><button id="backtest" class="secondary" disabled>Run demo backtest</button><div class="status" id="backtestMessage">Import verified OHLC CSV to enable.</div></div>
+<div class="card"><h2>04 · Multi-strategy research monitor</h2><p class="hint">All calculations use the currently imported candles. Screenshot-derived values are approximate, and strategy names do not imply Binomo endorsement or live connectivity.</p><div class="metricgrid" id="strategyGrid"><div class="metric">Awaiting candle data</div></div><div class="status" id="strategySummary">WAIT · No verified data</div>
+<div class="card" style="margin-top:12px;padding:14px;background:#0a192b" id="strategyConfirmationMeter">
+  <h3 style="margin:0 0 12px;font-size:16px">Strategy Confirmation Meter</h3>
+  <div style="display:flex;justify-content:space-between;gap:8px;font-weight:800;font-size:20px">
+    <span style="color:#10b981" id="strategyUpPct">UP —</span>
+    <span style="color:#f43f5e" id="strategyDownPct">DOWN —</span>
+  </div>
+  <div style="height:13px;display:flex;overflow:hidden;background:#344155;border-radius:10px;margin:12px 0">
+    <div id="strategyUpFill" style="width:0%;background:#10b981"></div>
+    <div id="strategyDownFill" style="width:0%;background:#f43f5e"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;gap:8px">
+    <span id="strategyNeutralPct">Neutral / WAIT —</span>
+    <strong id="strategyFinalDecision" style="color:#fbbf24">WAIT</strong>
+  </div>
+  <p class="hint" id="strategyMeterInfo">Six strategy votes. Percentages represent agreement, not prediction probability or accuracy.</p>
+</div></div><div class="card"><h2>Historical demo backtest</h2><p class="hint">Only enabled for imported, verified 1-minute OHLC CSV. Screenshot-derived values have synthetic timestamps and are unsuitable for meaningful backtesting.</p><button id="backtest" class="secondary" disabled>Run demo backtest</button><div class="status" id="backtestMessage">Import verified OHLC CSV to enable.</div></div>
 </section>
 </div>
 <div class="card"><h2>Extracted candle data</h2><div class="tablewrap"><table><thead><tr><th># / time</th><th>Open</th><th>High</th><th>Low</th><th>Close</th></tr></thead><tbody id="rows"><tr><td colspan="5">No candle data yet.</td></tr></tbody></table></div></div>
@@ -181,21 +197,37 @@ function detect(){
  // Filter vertical line / grid artifacts: require a meaningful candle body and coherent dominant color.
  const candidates=split.map(z=>{let a=z.cols;let green=a.reduce((s,c)=>s+c.green,0),red=a.reduce((s,c)=>s+c.red,0),y0=Math.min(...a.map(c=>c.y0)),y1=Math.max(...a.map(c=>c.y1));return{a,green,red,y0,y1}}).filter(z=>z.a.length>=2&&Math.max(z.green,z.red)>Math.min(z.green,z.red)*1.35&&z.y1-z.y0>=4);
  $('detected').textContent=split.length;$('usable').textContent=candidates.length;
- if(candidates.length<15){setData([],'none');status(`Found ${candidates.length} usable colored candle groups, which is too few for indicators. Crop tightly around the candles, avoiding price labels and expiry line. Try a clearer screenshot.`, 'warn');return}
+ if(candidates.length<7){setData([],'none');status(`Found ${candidates.length} usable colored candle groups, which is too few for the six-closed-candle analysis. Crop tightly around the candles, avoiding price labels and expiry line. Try a clearer screenshot.`, 'warn');return}
  // Reconstruct body from horizontal density of pixels. Y-axis is arbitrary normalized scale.
  let values=candidates.map(z=>{let density=new Map();for(let c of z.a){for(let y=c.y0;y<=c.y1;y++){let k=(y*w+c.x)*4;if(colored(pix[k],pix[k+1],pix[k+2]))density.set(y,(density.get(y)||0)+1)}}let max=Math.max(...density.values()),body=[...density].filter(([y,n])=>n>=max*.55).map(([y])=>y),upper=body.length?Math.min(...body):z.y0,lower=body.length?Math.max(...body):z.y1,up=z.green>z.red;
  const price=y=>100+(B-y)/(B-T)*10;
  return{o:price(up?lower:upper),c:price(up?upper:lower),h:price(z.y0),l:price(z.y1)}});
  // Do not assume every detected group is a distinct 1-minute candle or that the last is complete.
  // Exclude final candidate as potentially in progress.
- values=values.slice(0,-1);
+ values=values.slice(0,-1).slice(-6);
  const fakeTime=Date.now()-values.length*60000;
  setData(values.map((v,i)=>({...v,t:fakeTime+i*60000,v:0})),'screenshot');
- status(`Detected ${candidates.length} possible candle groups; ${values.length} used after excluding the rightmost possible unfinished candle. Values and timestamps are estimates. The chart's timeframe cannot be verified from this image.`,'ok')
+ status(`Detected ${candidates.length} possible candle groups; ${values.length} used after excluding the rightmost possible unfinished candle. Values and timestamps are estimates. Only the latest six detected completed candles are retained. The chart's timeframe cannot be verified from this image.`,'ok')
 }
 $('extract').onclick=()=>{try{detect()}catch(e){status('Image analysis failed: '+e.message+'. Try a smaller or clearer image.','warn')}};
 function ema(a,n){let alpha=2/(n+1),out=[],v=a[0];for(let x of a){v=x*alpha+v*(1-alpha);out.push(v)}return out}
-function calc(a){if(a.length<35)return null;let c=a.map(x=>x.c),e9=ema(c,9),e21=ema(c,21),e12=ema(c,12),e26=ema(c,26),m=c.map((_,i)=>e12[i]-e26[i]),sig=ema(m,9),hist=m.at(-1)-sig.at(-1);
+function calc(a){
+ if(kind==='screenshot'){
+   if(a.length<6)return null;
+   const w=a.slice(-6), last=w.at(-1), prev=w.at(-2);
+   const greens=w.filter(v=>v.c>v.o).length, reds=w.filter(v=>v.c<v.o).length;
+   const ups=[
+     greens>reds,
+     last.c>w[0].c,
+     last.c>prev.c,
+     last.c>last.o,
+     last.c>(Math.max(...w.map(x=>x.h))+Math.min(...w.map(x=>x.l)))/2
+   ];
+   const up=ups.filter(Boolean).length,down=5-up;
+   return {dir:up>=4?'UP':down>=4?'DOWN':'WAIT',up,down,green:greens,red:reds,
+     rsi:NaN,hist:NaN,atr:NaN,e9:NaN,e21:NaN};
+ }
+ if(a.length<35)return null;let c=a.map(x=>x.c),e9=ema(c,9),e21=ema(c,21),e12=ema(c,12),e26=ema(c,26),m=c.map((_,i)=>e12[i]-e26[i]),sig=ema(m,9),hist=m.at(-1)-sig.at(-1);
  let gains=0,losses=0;for(let i=c.length-14;i<c.length;i++){let d=c[i]-c[i-1];gains+=Math.max(0,d);losses+=Math.max(0,-d)}let rsi=losses===0?100:gains===0?0:100-100/(1+gains/losses);
  let tr=0;for(let i=a.length-14;i<a.length;i++){let v=a[i],prev=a[i-1].c;tr+=Math.max(v.h-v.l,Math.abs(v.h-prev),Math.abs(v.l-prev))}let atr=tr/14;
  let recent=a.slice(-5),green=recent.filter(v=>v.c>v.o).length,red=recent.filter(v=>v.c<v.o).length;
@@ -204,11 +236,11 @@ function calc(a){if(a.length<35)return null;let c=a.map(x=>x.c),e9=ema(c,9),e21=
 const fmt=n=>Number.isFinite(n)?Number(n).toFixed(3):'—';
 function setData(a,k){candles=a;kind=k;$('dataBadge').textContent=k==='screenshot'?'● SCREENSHOT ESTIMATE':k==='csv'?'● HISTORICAL CSV':'● NO DATA';$('source').textContent=k==='screenshot'?'IMAGE ESTIMATE · NOT LIVE':k==='csv'?'VERIFIED BY USER · HISTORICAL':'NO DATA';$('backtest').disabled=k!=='csv'||a.length<40;render()}
 function render(){let ind=calc(candles),dir=ind?.dir||'WAIT';$('bias').textContent=dir;$('bias').className='big '+dir.toLowerCase();$('upScore').textContent=ind?ind.up+'/5':'—';$('downScore').textContent=ind?ind.down+'/5':'—';$('upBar').style.width=ind?ind.up*20+'%':'0';$('downBar').style.width=ind?ind.down*20+'%':'0';$('rsi').textContent=ind?fmt(ind.rsi):'—';$('macd').textContent=ind?fmt(ind.hist):'—';$('ema').textContent=ind?fmt(ind.e9)+' / '+fmt(ind.e21):'—';$('atr').textContent=ind?fmt(ind.atr):'—';
- $('reason').textContent=!ind?`Only ${candles.length} usable candles. At least 35 are required for RSI/MACD research.`:`${ind.up} bullish / ${ind.down} bearish votes · ${ind.green} green and ${ind.red} red among the last 5 estimated candles. ${kind==='screenshot'?'Screenshot-only, static estimate; not a live signal.':'Historical CSV only; not a live signal.'}`;
- $('quality').textContent=kind==='screenshot'?'Relative reconstructed candles, synthetic timestamps and uncertain timeframe. Indicator values may be inaccurate.':kind==='csv'?'Imported historical OHLC data; verify source and time spacing.':'No candles available.';
- $('rows').innerHTML=candles.length?candles.slice(-45).reverse().map((v,i)=>`<tr><td>${kind==='screenshot'?'Estimated #'+(candles.length-i):new Date(v.t).toISOString().slice(0,16)}</td><td>${fmt(v.o)}</td><td>${fmt(v.h)}</td><td>${fmt(v.l)}</td><td>${fmt(v.c)}</td></tr>`).join(''):'<tr><td colspan="5">No candle data yet.</td></tr>';
+ $('reason').textContent=!ind?`Only ${candles.length} usable candles. Need 6 completed candles for the short-window analysis.`:`${ind.up} bullish / ${ind.down} bearish votes · ${ind.green} green and ${ind.red} red among the last 6 candles. ${kind==='screenshot'?'Screenshot-only, static estimate; not a live signal.':'Historical CSV only; not a live signal.'}`;
+ $('quality').textContent=kind==='screenshot'?'Only six recent reconstructed closed-candle estimates. RSI, MACD, EMA and ATR are unavailable with six candles; direction is a simple heuristic, not a forecast.':kind==='csv'?'Imported historical OHLC data; verify source and time spacing.':'No candles available.';
+ $('rows').innerHTML=candles.length?candles.slice(kind==='screenshot'?-6:-45).reverse().map((v,i)=>`<tr><td>${kind==='screenshot'?'Estimated #'+(candles.length-i):new Date(v.t).toISOString().slice(0,16)}</td><td>${fmt(v.o)}</td><td>${fmt(v.h)}</td><td>${fmt(v.l)}</td><td>${fmt(v.c)}</td></tr>`).join(''):'<tr><td colspan="5">No candle data yet.</td></tr>';
  plot();$('chartCaption').textContent=kind==='screenshot'?`${candles.length} reconstructed relative candles. NOT actual Binomo prices or verified 1-minute timestamps.`:kind==='csv'?`${candles.length} imported historical candles. No live refresh.`:'Upload a screenshot or import verified CSV.'}
-function plot(){let c=$('plot'),dpr=Math.min(devicePixelRatio||1,2),box=c.getBoundingClientRect(),W=Math.max(250,Math.round(box.width)),H=Math.max(170,Math.round(box.height));c.width=W*dpr;c.height=H*dpr;let g=c.getContext('2d');g.scale(dpr,dpr);g.fillStyle='#091321';g.fillRect(0,0,W,H);g.strokeStyle='#22334d';for(let j=1;j<5;j++){g.beginPath();g.moveTo(0,j*H/5);g.lineTo(W,j*H/5);g.stroke()}if(!candles.length)return;let a=candles.slice(-95),lo=Math.min(...a.map(v=>v.l)),hi=Math.max(...a.map(v=>v.h)),span=hi-lo||1,y=v=>15+(hi-v)/span*(H-30),step=W/a.length;for(let i=0;i<a.length;i++){let v=a[i],x=(i+.5)*step,up=v.c>=v.o;g.strokeStyle=g.fillStyle=up?'#10b981':'#f43f5e';g.lineWidth=Math.max(1,Math.min(2,step*.17));g.beginPath();g.moveTo(x,y(v.h));g.lineTo(x,y(v.l));g.stroke();let t=y(Math.max(v.o,v.c)),b=y(Math.min(v.o,v.c));g.fillRect(x-Math.max(1,step*.3),t,Math.max(2,step*.6),Math.max(2,b-t))}}
+function plot(){let c=$('plot'),dpr=Math.min(devicePixelRatio||1,2),box=c.getBoundingClientRect(),W=Math.max(250,Math.round(box.width)),H=Math.max(170,Math.round(box.height));c.width=W*dpr;c.height=H*dpr;let g=c.getContext('2d');g.scale(dpr,dpr);g.fillStyle='#091321';g.fillRect(0,0,W,H);g.strokeStyle='#22334d';for(let j=1;j<5;j++){g.beginPath();g.moveTo(0,j*H/5);g.lineTo(W,j*H/5);g.stroke()}if(!candles.length)return;let a=candles.slice(kind==='screenshot'?-6:-95),lo=Math.min(...a.map(v=>v.l)),hi=Math.max(...a.map(v=>v.h)),span=hi-lo||1,y=v=>15+(hi-v)/span*(H-30),step=W/a.length;for(let i=0;i<a.length;i++){let v=a[i],x=(i+.5)*step,up=v.c>=v.o;g.strokeStyle=g.fillStyle=up?'#10b981':'#f43f5e';g.lineWidth=Math.max(1,Math.min(2,step*.17));g.beginPath();g.moveTo(x,y(v.h));g.lineTo(x,y(v.l));g.stroke();let t=y(Math.max(v.o,v.c)),b=y(Math.min(v.o,v.c));g.fillRect(x-Math.max(1,step*.3),t,Math.max(2,step*.6),Math.max(2,b-t))}}
 function parseCSV(txt){let lines=txt.trim().split(/\r?\n/).filter(Boolean);if(lines.length<36)throw Error('Need at least 35 completed 1-minute rows');let h=lines.shift().split(',').map(s=>s.trim().toLowerCase()),idx=k=>h.indexOf(k);if(['time','open','high','low','close'].some(k=>idx(k)<0))throw Error('CSV must have time,open,high,low,close columns');let a=lines.map(s=>{let f=s.split(','),t=Date.parse(f[idx('time')]),o=+f[idx('open')],h=+f[idx('high')],l=+f[idx('low')],c=+f[idx('close')];if(!Number.isFinite(t)||![o,h,l,c].every(Number.isFinite)||h<Math.max(o,c)||l>Math.min(o,c))throw Error('Invalid candle row');return{t,o,h,l,c}});for(let i=1;i<a.length;i++)if(a[i].t-a[i-1].t!==60000)throw Error('CSV must contain consecutive completed 1-minute candles');return a}
 $('csvFile').onchange=async e=>{let f=e.target.files[0];if(f)$('csvText').value=await f.text()};
 $('import').onclick=()=>{try{let a=parseCSV($('csvText').value);lastCSV=a;setData(a,'csv');status('Historical CSV loaded. This is not a live feed.','ok')}catch(e){status('CSV import error: '+e.message,'warn')}};
@@ -225,7 +257,21 @@ function heikinLast(a){let ho=(a[0].o+a[0].c)/2,hc=(a[0].o+a[0].h+a[0].l+a[0].c)
 function fractalLast(a){let high=null,low=null;for(let i=2;i<a.length-2;i++){if(a[i].h>Math.max(a[i-2].h,a[i-1].h,a[i+1].h,a[i+2].h))high=a[i].h;if(a[i].l<Math.min(a[i-2].l,a[i-1].l,a[i+1].l,a[i+2].l))low=a[i].l}return{high,low}}
 function engulfLast(a){let b=a.at(-2),c=a.at(-1);if(!b||!c)return'WAIT';if(b.c<b.o&&c.c>c.o&&c.o<=b.c&&c.c>=b.o)return'UP';if(b.c>b.o&&c.c<c.o&&c.o>=b.c&&c.c<=b.o)return'DOWN';return'WAIT'}
 function strategyResults(a){
- if(a.length<35)return[];
+ if(a.length<6)return[];
+ if(a.length<35){
+   // Six closed candles do not support RSI14, EMA21 or MACD.
+   // Keep all six named strategies but mark insufficient-history studies as WAIT.
+   let f=fractalLast(a),last=a.at(-1).c;
+   let breakout=f.high!==null&&last>f.high?'UP':f.low!==null&&last<f.low?'DOWN':'WAIT';
+   return [
+    ['Dynamic Momentum Swing','WAIT','Needs RSI14 and MACD history'],
+    ['Crypto SMA / EMA / HMA / MACD','WAIT','Needs longer verified candle history'],
+    ['Fast Ride','WAIT','Needs EMA9/21 and MACD history'],
+    ['Fractals',breakout,'Confirmed 5-bar fractal breakout'],
+    ['Engulfing',engulfLast(a),'Last two closed candle bodies'],
+    ['Heikin Ashi',heikinLast(a),'Six-candle approximate smoothed direction']
+   ];
+ }
  let ind=calc(a),cl=a.map(x=>x.c),last=cl.at(-1),prev=cl.at(-2),e9=ema(cl,9).at(-1),e21=ema(cl,21).at(-1),sma=smaSeries(cl,20).at(-1),hma=hmaLast(cl);
  const vote=(bull,bear)=>bull?'UP':bear?'DOWN':'WAIT';
  const rsiDir=vote(ind.rsi>55,ind.rsi<45),macdDir=vote(ind.hist>0,ind.hist<0),emaDir=vote(e9>e21,e9<e21);
@@ -242,10 +288,29 @@ function strategyResults(a){
  ]}
 function renderStrategies(){
  let results=strategyResults(candles),grid=$('strategyGrid'),summary=$('strategySummary');
- if(!results.length){grid.innerHTML='<div class="metric">At least 35 usable candles needed.</div>';summary.textContent='WAIT · Insufficient data';return}
+ if(!results.length){
+   grid.innerHTML='<div class="metric">Need at least 6 detected closed candles.</div>';
+   summary.textContent='WAIT · Insufficient data';
+   ['strategyUpPct','strategyDownPct','strategyNeutralPct'].forEach(id=>$(id).textContent='—');
+   $('strategyUpFill').style.width='0%';$('strategyDownFill').style.width='0%';
+   $('strategyFinalDecision').textContent='WAIT';
+   $('strategyMeterInfo').textContent='No usable six-strategy result. These are not prediction probabilities.';
+   return;
+ }
  grid.innerHTML=results.map(([name,dir,detail])=>`<div class="metric"><small>${name}</small><strong style="color:${dir==='UP'?'#10b981':dir==='DOWN'?'#f43f5e':'#a7b5d1'}">${dir}</strong><small>${detail}</small></div>`).join('');
  let ups=results.filter(x=>x[1]==='UP').length,downs=results.filter(x=>x[1]==='DOWN').length;
  summary.textContent=`${ups} bullish · ${downs} bearish · ${results.length-ups-downs} neutral strategies. ${kind==='screenshot'?'Screenshot estimates only; not actual Crypto IDX OHLC or live signals.':'Historical CSV only; not live.'}`;
+ const total=results.length,neutral=total-ups-downs;
+ const pct=n=>(100*n/total).toFixed(0)+'%';
+ $('strategyUpPct').textContent='UP '+pct(ups);
+ $('strategyDownPct').textContent='DOWN '+pct(downs);
+ $('strategyNeutralPct').textContent='Neutral / WAIT '+pct(neutral);
+ $('strategyUpFill').style.width=(100*ups/total)+'%';
+ $('strategyDownFill').style.width=(100*downs/total)+'%';
+ // No trading recommendation is inferred from strategy votes.
+ $('strategyFinalDecision').textContent='WAIT';
+ $('strategyMeterInfo').textContent=`${ups} bullish / ${downs} bearish / ${neutral} neutral of ${total} strategies. Vote shares, NOT next-candle chances. ${kind==='screenshot'?'Screenshot values are unverified.':''}`;
+
 }
 const renderBase=render;
 render=function(){renderBase();renderStrategies()};
@@ -257,7 +322,7 @@ const timeLabel=t=>t?new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'
 const originalUpload=$('upload').onchange;
 $('upload').onchange=function(e){screenshotSelectedAt=Date.now();analysisFinishedAt=null;targetMinuteStart=null;originalUpload.call(this,e);updateTiming()};
 const originalExtract=$('extract').onclick;
-$('extract').onclick=function(){originalExtract();if(kind==='screenshot'&&candles.length>=35){analysisFinishedAt=Date.now();targetMinuteStart=(Math.floor(screenshotSelectedAt/60000)+1)*60000;}else{analysisFinishedAt=null;targetMinuteStart=null}updateTiming()};
+$('extract').onclick=function(){originalExtract();if(kind==='screenshot'&&candles.length>=6){analysisFinishedAt=Date.now();targetMinuteStart=(Math.floor(screenshotSelectedAt/60000)+1)*60000;}else{analysisFinishedAt=null;targetMinuteStart=null}updateTiming()};
 function updateTiming(){
  $('shotTaken').textContent=timeLabel(screenshotSelectedAt);
  $('analyzedAt').textContent=timeLabel(analysisFinishedAt);
@@ -280,8 +345,8 @@ function updateNextEstimate(){
  e.textContent=direction;e.className='big '+direction.toLowerCase();
  w.textContent=targetMinuteStart?timeLabel(targetMinuteStart)+' – '+timeLabel(targetMinuteStart+60000):'Upload screenshot to begin';
  q.textContent=!ind?'INSUFFICIENT':ready?'APPROXIMATE':'STALE';q.className='mini-bias wait';
- d.textContent=ind?`${candles.length} estimated candles · ${ind.up}/5 bullish · ${ind.down}/5 bearish votes`:`${candles.length} detected candles · need at least 35`;
- warn.textContent=!ind?'WAIT · Analyze a screenshot with at least 35 detected candles.':!ready?'WAIT · Screenshot analysis is stale or missed the target candle start. Upload a new screenshot.':'Research estimate only · Not a verified forecast, probability, or trade recommendation.';
+ d.textContent=ind?`${candles.length} estimated candles · ${ind.up}/5 bullish · ${ind.down}/5 bearish votes`:`${candles.length} detected candles · need at least 6`;
+ warn.textContent=!ind?'WAIT · Analyze a screenshot with 6 detected closed candles.':!ready?'WAIT · Screenshot analysis is stale or missed the target candle start. Upload a new screenshot.':'Research estimate only · Not a verified forecast, probability, or trade recommendation.';
 }
 for(const [id,actual] of [['actualUp','UP'],['actualDown','DOWN'],['actualFlat','FLAT']]){
  $(id).onclick=()=>{
