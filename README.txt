@@ -1,1 +1,1 @@
-V4.3: Compact indicator agreement: 2 columns on phones, 3 on wider screens; short graphs. All 18 indicators preserved. Upload index.html and fusion-indicators.js together.
+V4.4: Binomo indicator panel explicitly NO DATA until actual Binomo OHLC or visible numeric indicator values can be verified. Binance 10 coin status is a compact UP/DOWN/WAIT board; Binance large graph and overall trend hidden; top controls hidden but retained for script compatibility. Upload index.html and fusion-indicators.js together. Screenshot color groups are not 18 indicators. No automatic trades.
