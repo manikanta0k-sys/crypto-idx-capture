@@ -208,6 +208,25 @@ function estimateScreenshot(){
  }catch(e){for(const id of ['indUp','indDown','indWait'])if(el(id))el(id).textContent='—';if(el('agreement'))el('agreement').textContent='NO DATA — screenshot candle extraction failed. No indicator votes were calculated.';v50Reset('Screenshot extraction failed: '+e.message);v49AnalyzedAt=0;v49Put('v49Quality','NO DATA','warn');v49Put('v49Trend','NO DATA','warn');v49Put('v49Vol','NO DATA','warn');v49Freshness();if(status)status.textContent='NO DATA — '+e.message+' Indicator results were not calculated.';}
 }
 el('estimateBinomo')?.addEventListener('click',estimateScreenshot);
+// V5.2: Automatically run both existing analysis paths after an image is selected or pasted.
+// Preview's load event is shared by file-picker and clipboard flows. Never process a partial image.
+let autoShotLastSrc='',autoShotBusy=false;
+function autoAnalyzeSelectedScreenshot(){
+ const preview=el('shotPreview');
+ if(!preview||!preview.src||!preview.complete||!preview.naturalWidth||autoShotBusy||preview.src===autoShotLastSrc)return;
+ autoShotLastSrc=preview.src;autoShotBusy=true;
+ const status=el('estimateStatus');
+ if(status)status.textContent='Analyzing selected screenshot automatically…';
+ try{
+  el('shotAnalyze')?.click(); // original visual-bias flow, unchanged
+  estimateScreenshot();       // existing 18-indicator + smart assistant flow, unchanged
+ }finally{autoShotBusy=false;}
+}
+const autoShotPreview=el('shotPreview');
+autoShotPreview?.addEventListener('load',autoAnalyzeSelectedScreenshot);
+// Also covers cached images and rapid selections, without double-processing the same URL.
+el('shotFile')?.addEventListener('change',()=>{queueMicrotask(autoAnalyzeSelectedScreenshot);});
+
 el('calculateBinomo')?.addEventListener('click',async()=>{const file=el('binomoCsv')?.files?.[0],info=el('binomoCsvStatus');if(!file){if(info)info.textContent='Select a Binomo OHLC CSV file first.';return;}try{if(file.size>5e6)throw Error('CSV too large (max 5 MB).');const data=parseBinomoCsv(await file.text());const result=classify(data.rows).result;renderBinomoIndicators(result,data);v50Analyze(data.rows,result,'csv','CSV');}catch(e){v50Reset('CSV analysis failed: '+e.message);if(info)info.textContent='CSV not analyzed: '+e.message;}});
 function renderCoinStatus(groups){const board=el('coinStatusBoard');if(!board)return;board.textContent='';for(const coin of coins){const g=groups.find(x=>x.coin===coin);const votes=g?[g.result['EMA'],g.result['MACD'],g.result['RSI']]:[];const score=votes.reduce((a,b)=>a+b,0);const state=!g?'WAIT':score>0?'UP':score<0?'DOWN':'WAIT';const chip=document.createElement('div');chip.className='coin-chip '+state.toLowerCase();const name=document.createElement('div');name.textContent=coin;const label=document.createElement('small');label.textContent=g?state:'NO DATA';chip.append(name,label);board.append(chip);}}
 let chartMode='candles',lastGraphGroups=[];

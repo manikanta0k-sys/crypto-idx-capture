@@ -1,1 +1,3 @@
-Crypto 10 Fusion Pro V5.1. Fixes: cache-busted external JavaScript, correct 20-candle instructions, clearer candle detection errors, tolerant candidate screening, safe NO DATA reset. All V5.0 features retained. Deploy BOTH index.html and fusion-indicators.js to GitHub Pages. Refresh with ?v=51. Pixel OHLC estimates are unverified and cannot guarantee next candle outcomes.
+Crypto 10 Fusion Pro V5.2
+Based on V5.1. Screenshot picker and clipboard paste automatically trigger existing screenshot visual analysis, 18 estimated indicators and Smart Candle Assistant after preview image loads. Signal Comparison panel hidden, underlying logic preserved. Manual analyze buttons retained in DOM but hidden. Minimum 20 usable completed candle groups. Binomo screenshot OHLC is pixel-estimated, not live/verified; insufficient data produces NO DATA.
+Upload index.html and fusion-indicators.js together to GitHub Pages.
