@@ -1,1 +1,1 @@
-Crypto 10 Fusion V4.0. Upload index.html and fusion-indicators.js to the SAME GitHub Pages folder. Binance data requires public Binance API access. Screenshot analysis is experimental visual color grouping, not OHLC extraction or validated trading predictions.
+V4.3: Compact indicator agreement: 2 columns on phones, 3 on wider screens; short graphs. All 18 indicators preserved. Upload index.html and fusion-indicators.js together.

@@ -32,9 +32,43 @@ result['Fractal Chaos Bands']=result['Fractals'];
 const jaw=ema(mid,13),teeth=ema(mid,8),lips=ema(mid,5);result['Alligator']=lips[i]>teeth[i]&&teeth[i]>jaw[i]?1:lips[i]<teeth[i]&&teeth[i]<jaw[i]?-1:0;
 // ATR measures volatility, not direction; intentionally WAIT.
 result['ATR']=0;
-return {result,closes:c};}
+return {result,closes:c,rows};}
 function draw(groups,available){const root=el('agreement');if(!root)return;root.innerHTML='';for(const name of names){const votes=groups.map(g=>g.result[name]);const counts=[votes.filter(v=>v===1).length,votes.filter(v=>v===-1).length,votes.filter(v=>v===0).length],den=votes.length;const p=counts.map(v=>den?Math.round(v/den*100):0);const section=document.createElement('div');section.className='indicator-chart-group';const heading=document.createElement('div');heading.className='indicator-chart-heading';const label=document.createElement('strong');label.textContent=name;heading.append(label);const tag=document.createElement('span');tag.textContent=den?['UP','DOWN','WAIT'][counts.indexOf(Math.max(...counts))]:'NO DATA';tag.style.color=colors[counts.indexOf(Math.max(...counts))];heading.append(tag);section.append(heading);const plot=document.createElement('div');plot.className='indicator-plot';for(let k=0;k<3;k++){const col=document.createElement('div');col.className='indicator-column';const num=document.createElement('b');num.textContent=den?p[k]+'%':'—';const bar=document.createElement('div');bar.className='indicator-column-bar';bar.style.cssText=`height:${den?p[k]:0}%;background:${colors[k]};`;const cap=document.createElement('span');cap.textContent=['UP','DOWN','WAIT'][k];col.append(num,bar,cap);plot.append(col);}section.append(plot);root.append(section);}el('indicatorDataInfo').textContent=`${available}/10 coins with completed Binance candles. ATR measures volatility, so its directional classification is WAIT. Fractals and Fractal Chaos Bands share pivot logic. Percentages are coin counts, NOT predicted accuracy.`;}
-function lineGraph(groups){const canvas=el('tenGraph');if(!canvas||!groups.length)return;const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1525';ctx.fillRect(0,0,w,h);const series=groups.map(g=>{const a=g.closes.slice(-45);return a.map(x=>(x/a[0]-1)*100)});const all=series.flat(),min=Math.min(...all,-.1),max=Math.max(...all,.1),range=max-min;for(let k=0;k<5;k++){const y=30+(h-65)*k/4;ctx.strokeStyle='#33445b';ctx.beginPath();ctx.moveTo(45,y);ctx.lineTo(w-15,y);ctx.stroke();ctx.fillStyle='#b5c5d7';ctx.font='14px sans-serif';ctx.fillText((max-range*k/4).toFixed(2)+'%',2,y+5);}series.forEach((arr,j)=>{ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle=['#2dd4bf','#60a5fa','#f472b6','#fbbf24','#c084fc','#fb7185','#34d399','#a78bfa','#f97316','#94a3b8'][j%10];arr.forEach((v,i)=>{const x=45+i*(w-60)/(arr.length-1),y=30+(max-v)/range*(h-65);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();});const legend=el('tenLegend');if(legend)legend.textContent=groups.map(g=>g.coin).join(' · ');}
+
+let chartMode='candles',lastGraphGroups=[];
+const palette=['#2dd4bf','#60a5fa','#f472b6','#fbbf24','#c084fc','#fb7185','#34d399','#a78bfa','#f97316','#94a3b8'];
+function lineGraph(groups){
+ lastGraphGroups=groups;
+ const canvas=el('tenGraph');if(!canvas)return;
+ const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+ ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1525';ctx.fillRect(0,0,w,h);
+ const legend=el('tenLegend');
+ if(!groups.length){ctx.fillStyle='#a8bdd1';ctx.font='20px sans-serif';ctx.fillText('Waiting for Binance market data',70,h/2);if(legend)legend.textContent='No live data';return;}
+ const length=Math.min(45,...groups.map(g=>g.rows.length));
+ const series=groups.map(g=>{const a=g.rows.slice(-length);const base=a[0][4];return a.map(r=>({t:r[0],o:(r[1]/base-1)*100,h:(r[2]/base-1)*100,l:(r[3]/base-1)*100,c:(r[4]/base-1)*100}));});
+ const avg=Array.from({length},(_,i)=>{const a=series.map(s=>s[i]);return {t:a[0].t,o:mean(a.map(r=>r.o)),h:mean(a.map(r=>r.h)),l:mean(a.map(r=>r.l)),c:mean(a.map(r=>r.c))};});
+ const values=chartMode==='candles'?avg.flatMap(r=>[r.h,r.l]):series.flatMap(s=>s.map(r=>r.c));
+ let min=Math.min(...values),max=Math.max(...values);const pad=Math.max(.08,(max-min)*.13);min-=pad;max+=pad;
+ const L=65,R=20,T=22,B=43,W=w-L-R,H=h-T-B;
+ const y=v=>T+(max-v)/(max-min)*H,x=i=>L+(i+.5)*W/length;
+ ctx.font='13px system-ui,sans-serif';ctx.textAlign='right';
+ for(let i=0;i<=5;i++){const v=max-(max-min)*i/5,yy=y(v);ctx.strokeStyle='#253a52';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,yy);ctx.lineTo(w-R,yy);ctx.stroke();ctx.fillStyle='#9bb1c7';ctx.fillText(v.toFixed(2)+'%',L-8,yy+4);}
+ if(min<0&&max>0){ctx.strokeStyle='#69849e';ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(L,y(0));ctx.lineTo(w-R,y(0));ctx.stroke();ctx.setLineDash([]);}
+ if(chartMode==='candles'){
+  const cw=Math.max(4,Math.min(14,W/length*.58));
+  avg.forEach((r,i)=>{const up=r.c>=r.o;ctx.strokeStyle=ctx.fillStyle=up?'#14cba0':'#fb6178';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x(i),y(r.h));ctx.lineTo(x(i),y(r.l));ctx.stroke();ctx.fillRect(x(i)-cw/2,Math.min(y(r.o),y(r.c)),cw,Math.max(2,Math.abs(y(r.o)-y(r.c))));});
+  if(legend)legend.innerHTML='<span>🟢 Rising average candle</span><span>🔴 Falling average candle</span><span>10-coin normalized average · not a tradable asset</span>';
+ }else{
+  series.forEach((arr,j)=>{ctx.beginPath();ctx.strokeStyle=palette[coins.indexOf(groups[j].coin)%10];ctx.lineWidth=2.4;arr.forEach((r,i)=>i?ctx.lineTo(x(i),y(r.c)):ctx.moveTo(x(i),y(r.c)));ctx.stroke();});
+  if(legend){legend.textContent='';groups.forEach(g=>{const s=document.createElement('span');s.style.borderLeft='4px solid '+palette[coins.indexOf(g.coin)%10];s.textContent=g.coin;legend.appendChild(s);});}
+ }
+ ctx.fillStyle='#a9bdd1';ctx.textAlign='center';ctx.font='13px system-ui,sans-serif';
+ const marks=[0,Math.floor((length-1)/2),length-1];
+ marks.forEach(i=>ctx.fillText(new Date(avg[i].t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),x(i),h-14));
+}
+for(const [id,mode] of [['viewCandles','candles'],['viewLines','lines']]){
+ el(id)?.addEventListener('click',()=>{chartMode=mode;for(const [button,m] of [['viewCandles','candles'],['viewLines','lines']])el(button)?.classList.toggle('active',m===mode);if(el('chartViewLabel'))el('chartViewLabel').textContent=mode==='candles'?'10-coin average · completed candles':'10 separate normalized coin lines';lineGraph(lastGraphGroups);});
+}
 let running=false;
 async function update(){if(running)return;running=true;const tf=el('tf')?.value||'1m',status=el('status');if(status)status.textContent='Loading live data…';const good=[],errors=[];await Promise.all(coins.map(async coin=>{try{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);let response;try{response=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${coin}USDT&interval=${tf}&limit=125`,{signal:ctrl.signal,cache:'no-store'});}finally{clearTimeout(timer)}if(!response.ok)throw Error('HTTP '+response.status);const raw=await response.json();const now=Date.now();const rows=raw.filter(x=>Number(x[6])<now).map(x=>[+x[0],+x[1],+x[2],+x[3],+x[4]]);const v=classify(rows);good.push({...v,coin});}catch(e){errors.push(coin+': '+e.message)}}));good.sort((a,b)=>coins.indexOf(a.coin)-coins.indexOf(b.coin));draw(good,good.length);lineGraph(good);const votes=good.map(g=>g.result['EMA']+g.result['MACD']+g.result['RSI']);const u=votes.filter(v=>v>0).length,d=votes.filter(v=>v<0).length,z=votes.filter(v=>v===0).length;[['up',u],['down',d],['neutral',z]].forEach(([id,v])=>{if(el(id))el(id).textContent=good.length?v:'—'});if(el('bias'))el('bias').textContent=!good.length?'NO DATA':u>d?'UP':d>u?'DOWN':'MIXED';if(el('explain'))el('explain').textContent=`${good.length}/10 coins loaded. EMA + MACD + RSI descriptive vote, not future-price prediction.`;if(el('tenGraphInfo'))el('tenGraphInfo').textContent=`Updated ${new Date().toLocaleTimeString()} · ${good.length}/10 coins · Completed candles only.`;if(el('log'))el('log').textContent=errors.length?errors.join('\n'):'All 10 coin feeds loaded.';if(status)status.textContent=good.length?`Live: ${good.length}/10`:'Data unavailable';if(!good.length)el('agreement').textContent='No live candles loaded. Check Binance API access / network; no fabricated indicator signals.';running=false;}
 el('refresh')?.addEventListener('click',update);el('tf')?.addEventListener('change',update);let timer=null;function schedule(){if(timer)clearInterval(timer);const ms=Number(el('interval')?.value||30000);if(ms>0)timer=setInterval(update,ms);}el('interval')?.addEventListener('change',schedule);schedule();update();
