@@ -54,6 +54,64 @@ function renderBinomoIndicators(result,meta){
  for(const [id,v] of [['indUp',up],['indDown',down],['indWait',wait]])if(el(id))el(id).textContent=v+'/18';
  const info=el('binomoCsvStatus');if(info)info.textContent=`Binomo OHLC CSV analyzed: ${meta.rows.length} completed candles · ${meta.excluded} running/future candle(s) excluded · ${Math.round(meta.tf/60000)}m interval · 18 classifications: ${up} UP, ${down} DOWN, ${wait} WAIT. ATR is volatility-only; Fractals and Fractal Chaos Bands share pivot logic. These are approximate implementations, not guaranteed Binomo platform indicator values.`;
 }
+// EXPERIMENTAL screenshot candle extraction. Pixel-relative OHLC only; no price-scale calibration.
+function extractScreenshotCandles(img){
+ const canvas=document.createElement('canvas');const scale=Math.min(1,1200/img.naturalWidth);canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);
+ const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
+ const pix=ctx.getImageData(0,0,w,h).data;
+ // Chart crop avoids top status bar, bottom controls and right-hand expiry overlay.
+ const left=Math.round(w*.035),right=Math.round(w*.925),top=Math.round(h*.10),bottom=Math.round(h*.65);
+ const columns=[];
+ for(let x=left;x<right;x++){
+  let green=[],red=[];
+  for(let y=top;y<bottom;y++){
+   const k=(y*w+x)*4,r=pix[k],g=pix[k+1],b=pix[k+2];
+   if(g>75&&g>r*1.28&&g>b*1.12&&r<165)green.push(y);
+   else if(r>110&&r>g*1.35&&r>b*1.15&&g<170)red.push(y);
+  }
+  const vals=green.length>=red.length?green:red,sign=green.length>=red.length?1:-1;
+  columns.push({x,sign,count:vals.length,ys:vals});
+ }
+ // Segment contiguous candle-colored pixels; split at low-density column gaps.
+ const runs=[];let run=[];
+ function flush(){if(run.length){runs.push(run);run=[];}}
+ for(const c of columns){if(c.count>=2){if(run.length&&c.sign!==run[run.length-1].sign)flush();run.push(c);}else flush();}flush();
+ // Widths vary with zoom. A run much wider than a candle is ambiguous; reject instead of inventing bars.
+ const widths=runs.map(r=>r.length).filter(v=>v>=2&&v<=18).sort((a,b)=>a-b);
+ if(widths.length<55)throw Error('Too few separated candles ('+widths.length+'). Zoom out and remove overlays.');
+ const median=widths[Math.floor(widths.length/2)];
+ const candles=[];let rejected=0;
+ for(const run of runs){
+  if(run.length<2||run.length>Math.max(17,median*2.3)){rejected++;continue;}
+  const all=run.flatMap(v=>v.ys),hi=Math.min(...all),lo=Math.max(...all);
+  const body=run.filter(v=>v.count>=Math.max(3,Math.round(run.length*.65)));
+  const candidates=body.length?body:run;
+  // A thick body column tends to span body endpoints; thin wick spans high-low.
+  const center=candidates.reduce((a,b)=>a.count>b.count?a:b);
+  const bHi=Math.min(...center.ys),bLo=Math.max(...center.ys);
+  const open=run[0].sign===1?bLo:bHi,close=run[0].sign===1?bHi:bLo;
+  if(lo-hi<2){rejected++;continue;}
+  candles.push({x:run.reduce((a,v)=>a+v.x,0)/run.length,open,high:hi,low:lo,close});
+ }
+ // Exclude the rightmost candle (potentially still running).
+ candles.sort((a,b)=>a.x-b.x);if(candles.length) candles.pop();
+ if(candles.length<70)throw Error('Only '+candles.length+' usable closed candles detected; need 70+. Zoom out or use CSV.');
+ if(rejected>runs.length*.35)throw Error('Too many ambiguous candle groups. Use a clearer screenshot or CSV.');
+ // Positive, pixel-relative prices (vertical inversion). No assertion of true OHLC prices.
+ const rows=candles.map((v,i)=>[i*60000,1000-v.open,1000-v.high,1000-v.low,1000-v.close]);
+ return {rows,detected:candles.length,rejected};
+}
+function estimateScreenshot(){
+ const status=el('estimateStatus'),preview=el('shotPreview');
+ if(!preview?.src||!preview.complete||!preview.naturalWidth){if(status)status.textContent='Upload and analyze a Binomo screenshot first.';return;}
+ try{
+  const data=extractScreenshotCandles(preview),result=classify(data.rows).result;
+  renderBinomoIndicators(result,{rows:data.rows,excluded:1,tf:60000});
+  if(status)status.textContent='EXPERIMENTAL: '+data.detected+' pixel-derived closed candles; '+data.rejected+' ambiguous groups ignored. These are NOT verified OHLC or official Binomo indicator readings.';
+  if(el('binomoCsvStatus'))el('binomoCsvStatus').textContent='Screenshot-only ESTIMATE (unverified pixel-relative OHLC). For accurate indicators, import authorized Binomo OHLC CSV.';
+ }catch(e){if(status)status.textContent='NO DATA — '+e.message+' Indicator results were not calculated.';}
+}
+el('estimateBinomo')?.addEventListener('click',estimateScreenshot);
 el('calculateBinomo')?.addEventListener('click',async()=>{const file=el('binomoCsv')?.files?.[0],info=el('binomoCsvStatus');if(!file){if(info)info.textContent='Select a Binomo OHLC CSV file first.';return;}try{if(file.size>5e6)throw Error('CSV too large (max 5 MB).');const data=parseBinomoCsv(await file.text());const result=classify(data.rows).result;renderBinomoIndicators(result,data);}catch(e){if(info)info.textContent='CSV not analyzed: '+e.message;}});
 function renderCoinStatus(groups){const board=el('coinStatusBoard');if(!board)return;board.textContent='';for(const coin of coins){const g=groups.find(x=>x.coin===coin);const votes=g?[g.result['EMA'],g.result['MACD'],g.result['RSI']]:[];const score=votes.reduce((a,b)=>a+b,0);const state=!g?'WAIT':score>0?'UP':score<0?'DOWN':'WAIT';const chip=document.createElement('div');chip.className='coin-chip '+state.toLowerCase();const name=document.createElement('div');name.textContent=coin;const label=document.createElement('small');label.textContent=g?state:'NO DATA';chip.append(name,label);board.append(chip);}}
 let chartMode='candles',lastGraphGroups=[];
