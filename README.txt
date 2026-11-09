@@ -1,1 +1,5 @@
-Crypto 10 Fusion Pro V4.7 — Adds experimental screenshot pixel-to-relative-OHLC extraction and an explicit Estimate Indicators button. Requires >=70 detectable completed candles, excludes rightmost candle, rejects weak extraction. Estimates are NOT actual Binomo OHLC, and should not be used for live trading decisions. Authorized CSV input remains supported. Upload index.html and fusion-indicators.js together.
+Crypto 10 Fusion Pro V5.0
+Adds deterministic AI-style reversal comparison between uploads, minute-boundary screenshot reminders, candle shape detection, approximate swing support/resistance, WAIT safety logic, and plain-English explanations.
+Retains V4.9 layout, 20 minimum completed candles, screenshot estimation, 18 indicators, Binance compact box and diagnostics.
+Not connected to live Binomo; screenshot pixel OHLC is unverified. No trade automation.
+Upload BOTH index.html and fusion-indicators.js to GitHub Pages.
