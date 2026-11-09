@@ -63,7 +63,7 @@ function extractScreenshotCandles(img){
  const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
  const pix=ctx.getImageData(0,0,w,h).data;
  // Chart crop avoids top status bar, bottom controls and right-hand expiry overlay.
- const left=Math.round(w*.035),right=Math.round(w*.925),top=Math.round(h*.10),bottom=Math.round(h*.65);
+ const left=Math.round(w*.025),right=Math.round(w*.945),top=Math.round(h*.075),bottom=Math.round(h*.66);
  const columns=[];
  for(let x=left;x<right;x++){
   let green=[],red=[];
@@ -81,7 +81,7 @@ function extractScreenshotCandles(img){
  for(const c of columns){if(c.count>=2){if(run.length&&c.sign!==run[run.length-1].sign)flush();run.push(c);}else flush();}flush();
  // Widths vary with zoom. A run much wider than a candle is ambiguous; reject instead of inventing bars.
  const widths=runs.map(r=>r.length).filter(v=>v>=2&&v<=18).sort((a,b)=>a-b);
- if(widths.length<15)throw Error('Too few separated candle groups ('+widths.length+'). Zoom out and remove overlays.');
+ if(widths.length<8)throw Error('Only '+widths.length+' candidate candle groups. Try a clearer screenshot with the chart filling the screen.');
  const median=widths[Math.floor(widths.length/2)];
  const candles=[];let rejected=0;
  for(const run of runs){
@@ -98,8 +98,8 @@ function extractScreenshotCandles(img){
  }
  // Exclude the rightmost candle (potentially still running).
  candles.sort((a,b)=>a.x-b.x);if(candles.length) candles.pop();
- if(candles.length<20)throw Error('Only '+candles.length+' usable closed candles detected; need 20+. Zoom out or use CSV.');
- if(rejected>runs.length*.35)throw Error('Too many ambiguous candle groups. Use a clearer screenshot or CSV.');
+ if(candles.length<20)throw Error('Detected '+runs.length+' colored groups but only '+candles.length+' usable closed candles (minimum 20). Try zooming slightly IN, removing overlays, or use CSV.');
+ if(rejected>runs.length*.65)throw Error('Too many ambiguous candle groups ('+rejected+'). Try a clearer screenshot or CSV.');
  // Positive, pixel-relative prices (vertical inversion). No assertion of true OHLC prices.
  const rows=candles.map((v,i)=>[i*60000,1000-v.open,1000-v.high,1000-v.low,1000-v.close]);
  return {rows,detected:candles.length,rejected};
@@ -205,7 +205,7 @@ function estimateScreenshot(){
   renderBinomoIndicators(result,{rows:data.rows,excluded:1,tf:60000});v49Diagnostics(data);v50Analyze(data.rows,result,'screenshot',el('v49Quality')?.textContent||'LOW CONFIDENCE');
   if(status)status.textContent='EXPERIMENTAL: '+data.detected+' pixel-derived closed candles; '+data.rejected+' ambiguous groups ignored. These are NOT verified OHLC or official Binomo indicator readings.';
   if(el('binomoCsvStatus'))el('binomoCsvStatus').textContent='Screenshot-only ESTIMATE (unverified pixel-relative OHLC). For accurate indicators, import authorized Binomo OHLC CSV.';
- }catch(e){v50Reset('Screenshot extraction failed: '+e.message);v49AnalyzedAt=0;v49Put('v49Quality','NO DATA','warn');v49Put('v49Trend','NO DATA','warn');v49Put('v49Vol','NO DATA','warn');v49Freshness();if(status)status.textContent='NO DATA — '+e.message+' Indicator results were not calculated.';}
+ }catch(e){for(const id of ['indUp','indDown','indWait'])if(el(id))el(id).textContent='—';if(el('agreement'))el('agreement').textContent='NO DATA — screenshot candle extraction failed. No indicator votes were calculated.';v50Reset('Screenshot extraction failed: '+e.message);v49AnalyzedAt=0;v49Put('v49Quality','NO DATA','warn');v49Put('v49Trend','NO DATA','warn');v49Put('v49Vol','NO DATA','warn');v49Freshness();if(status)status.textContent='NO DATA — '+e.message+' Indicator results were not calculated.';}
 }
 el('estimateBinomo')?.addEventListener('click',estimateScreenshot);
 el('calculateBinomo')?.addEventListener('click',async()=>{const file=el('binomoCsv')?.files?.[0],info=el('binomoCsvStatus');if(!file){if(info)info.textContent='Select a Binomo OHLC CSV file first.';return;}try{if(file.size>5e6)throw Error('CSV too large (max 5 MB).');const data=parseBinomoCsv(await file.text());const result=classify(data.rows).result;renderBinomoIndicators(result,data);v50Analyze(data.rows,result,'csv','CSV');}catch(e){v50Reset('CSV analysis failed: '+e.message);if(info)info.textContent='CSV not analyzed: '+e.message;}});
