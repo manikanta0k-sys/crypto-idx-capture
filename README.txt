@@ -1,2 +1,1 @@
-Sections 3 and 4 reordered in your uploaded dashboard. No calculation or feature logic changed.
-NOTE: This HTML references fusion-indicators.js, which was not included in the upload. Include the original fusion-indicators.js alongside index.html for indicator functionality.
+Crypto 10 Fusion V4.0. Upload index.html and fusion-indicators.js to the SAME GitHub Pages folder. Binance data requires public Binance API access. Screenshot analysis is experimental visual color grouping, not OHLC extraction or validated trading predictions.
