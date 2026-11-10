@@ -191,11 +191,12 @@ function v50Analyze(rows,result,source,quality){
  if(volatility)reasons.push('unusually large latest candle range');
  if(caution)reasons.push('near an estimated swing zone');
  if(patternConflict)reasons.push('latest candle shape conflicts with indicator bias');
- const detail=(wait?'WAIT recommended for demo analysis. ':'Directional bias: '+decision+' (not a next-candle guarantee). ')+reasons.join('; ')+'. '+(source==='screenshot'?'Prices are pixel-relative estimates, NOT actual Binomo OHLC. ':'Uses imported OHLC; verify its origin and completion timestamps. ')+ 'This cannot detect a reversal until NEW data is uploaded.';
+ const detail=(wait?'WAIT recommended for demo analysis. ':'Directional bias: '+decision+' (not a next-candle guarantee). ')+reasons.join('; ')+'. '+(source==='screenshot'?'Prices are pixel-relative estimates, NOT actual Binomo OHLC. This is a speculative description, NOT a validated next-candle forecast or probability. ':'Uses imported OHLC; verify its origin and completion timestamps. ')+ 'This cannot detect a reversal until NEW data is uploaded.';
  v50Text('v50Explanation',detail);
- v50Text('v50Status','Analysis captured now · next screenshot after current 1-minute candle closes. Timer follows phone clock, not verified Binomo candle timing.');v50Timer();
+ v50Text('v50Status','Screenshot-based analysis only. Take a NEW screenshot after the next 1-minute candle closes. No live Binomo feed or guaranteed prediction.');v50Timer();
+ document.dispatchEvent(new CustomEvent('fusion:analysis',{detail:{source,at:now,decision,quality,pattern,reversal,zones,indicatorVotes:{up,down,wait:valid.filter(v=>v===0).length},validIndicators:directional,totalIndicators:18,estimated:source==='screenshot',volatility,conflict,caution,patternConflict,nextScreenshot:'After the next completed candle'}}));
 }
-function v50Reset(message){v50Last=null;v50Text('v50Decision','NO DATA','wait');v50Text('v50Reversal','Waiting for valid data');v50Text('v50Pattern','NO DATA');v50Text('v50Zones','NO DATA');v50Text('v50Explanation',message||'Upload a valid screenshot or CSV.');v50Text('v50Status','No usable analysis.');}
+function v50Reset(message){v50Last=null;v50Text('v50Decision','NO DATA','wait');v50Text('v50Reversal','Waiting for valid data');v50Text('v50Pattern','NO DATA');v50Text('v50Zones','NO DATA');v50Text('v50Explanation',message||'Upload a valid screenshot or CSV.');v50Text('v50Status','No usable analysis.');document.dispatchEvent(new CustomEvent('fusion:analysis-reset'));}
 
 function estimateScreenshot(){
  const status=el('estimateStatus'),preview=el('shotPreview');
