@@ -133,30 +133,6 @@ function v49Diagnostics(data){
  v49AnalyzedAt=Date.now();v49Freshness();
 }
 
-// V5.4: A two-minute-ahead, *provisional* visual label, not a future-price forecast.
-// A 17:06 upload labels 17:07 as unobserved/intermediate and 17:08 as target.
-// All times use the phone clock, not actual Binomo candle timestamps.
-let v54Snapshot=null;
-function v54Schedule(at){const minute=Math.floor(at/60000)*60000;return {captured:minute,skip:minute+60000,target:minute+120000,end:minute+180000};}
-function v54Time(at){return new Date(at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit',hour12:true});}
-function v54Duration(ms){const total=Math.max(0,Math.ceil(ms/1000));return Math.floor(total/60)+'m '+String(total%60).padStart(2,'0')+'s';}
-function v54Render(now=Date.now()){
- const txt=(id,v)=>{const node=el(id);if(node)node.textContent=v;};
- if(!v54Snapshot){txt('v54Captured','—');txt('v54Skipped','—');txt('v54Target','—');txt('v54Countdown','Upload a screenshot');txt('v54Recheck','After current candle closes');txt('v54Stage','AWAITING SCREENSHOT');return;}
- const sch=v54Schedule(v54Snapshot.at),age=now-v54Snapshot.at,stale=age>=60000;
- txt('v54Captured',v54Time(sch.captured));
- txt('v54Skipped',v54Time(sch.skip));
- txt('v54Target',v54Time(sch.target));
- if(now<sch.target)txt('v54Countdown',v54Duration(sch.target-now)+' to '+v54Time(sch.target));
- else if(now<sch.end)txt('v54Countdown','Target window started · '+v54Time(sch.target)+'–'+v54Time(sch.end));
- else txt('v54Countdown','Target window ended');
- if(now<sch.skip)txt('v54Recheck',v54Duration(sch.skip-now)+' · after '+v54Time(sch.skip));
- else txt('v54Recheck','Upload NEW screenshot now to reassess');
- const stage=now>=sch.end?'EXPIRED':stale?'STALE · RECHECK':v54Snapshot.decision==='WAIT'?'WAIT · EARLY VIEW':'PROVISIONAL '+v54Snapshot.decision;
- txt('v54Stage',stage);
- txt('v54Caution',stale?'Old screenshot cannot verify the target. WAIT until a fresh screenshot is analyzed. Neither UP nor DOWN is guaranteed.':
-  'Early '+v54Snapshot.decision+' bias for '+v54Time(sch.target)+'–'+v54Time(sch.end)+' only. The '+v54Time(sch.skip)+' candle is not observed yet. Screenshot-derived OHLC is approximate; this is not a live signal.');
-}
 // V5.0 Smart Candle Assistant: deterministic, explainable analysis of last supplied data.
 // No autonomous market observation, no trained AI model, and no win-probability claim.
 let v50Last=null,v50Previous=null;
@@ -164,7 +140,6 @@ function v50Text(id,value,kind){const e=el(id);if(!e)return;e.textContent=value;
 function v50Timer(){
  const seconds=60-new Date().getSeconds();
  v50Text('v50Timer',seconds+'s to next minute boundary');
- v54Render();
  if(!v50Last)return;
  const age=Math.floor((Date.now()-v50Last.at)/1000);
  if(age>=60){v50Text('v50Decision','WAIT · STALE','wait');v50Text('v50Status','Previous screenshot analysis is '+age+'s old. Upload a NEW screenshot after the next candle closes. No live market tracking.');}
@@ -207,8 +182,6 @@ function v50Analyze(rows,result,source,quality){
   else reversal='No confirmed direction flip';
  }
  v50Previous=v50Last;v50Last={at:now,decision,rawVote:vote,source};
- // Label the second minute after the upload, never the running or immediate next candle.
- v54Snapshot={at:now,decision,source};v54Render(now);
  v50Text('v50Decision',decision,decision.toLowerCase());v50Text('v50Reversal',reversal,reversal.includes('flipped')?'wait':null);
  v50Text('v50Pattern',pattern);v50Text('v50Zones',zones);
  const reasons=[];
@@ -220,10 +193,10 @@ function v50Analyze(rows,result,source,quality){
  if(patternConflict)reasons.push('latest candle shape conflicts with indicator bias');
  const detail=(wait?'WAIT recommended for demo analysis. ':'Directional bias: '+decision+' (not a next-candle guarantee). ')+reasons.join('; ')+'. '+(source==='screenshot'?'Prices are pixel-relative estimates, NOT actual Binomo OHLC. ':'Uses imported OHLC; verify its origin and completion timestamps. ')+ 'This cannot detect a reversal until NEW data is uploaded.';
  v50Text('v50Explanation',detail);
- v50Text('v50Status','Early next+2-minute outlook uses screenshot upload time. The intermediate candle is NOT known. Re-upload after the current minute closes. No live feed or guaranteed forecast.');v50Timer();
- document.dispatchEvent(new CustomEvent('fusion:analysis',{detail:{source,at:now,decision,quality,pattern,reversal,zones,indicatorVotes:{up,down,wait:valid.filter(v=>v===0).length},validIndicators:directional,totalIndicators:18,estimated:source==='screenshot',volatility,conflict,caution,patternConflict,target:el('v54Target')?.textContent||'unknown'}}));
+ v50Text('v50Status','Screenshot-based analysis only. Take a NEW screenshot after the next 1-minute candle closes. No live Binomo feed or guaranteed prediction.');v50Timer();
+ document.dispatchEvent(new CustomEvent('fusion:analysis',{detail:{source,at:now,decision,quality,pattern,reversal,zones,indicatorVotes:{up,down,wait:valid.filter(v=>v===0).length},validIndicators:directional,totalIndicators:18,estimated:source==='screenshot',volatility,conflict,caution,patternConflict,nextScreenshot:'After the next completed candle'}}));
 }
-function v50Reset(message){v50Last=null;v54Snapshot=null;v54Render();v50Text('v50Decision','NO DATA','wait');v50Text('v50Reversal','Waiting for valid data');v50Text('v50Pattern','NO DATA');v50Text('v50Zones','NO DATA');v50Text('v50Explanation',message||'Upload a valid screenshot or CSV.');v50Text('v50Status','No usable analysis.');document.dispatchEvent(new CustomEvent('fusion:analysis-reset'));}
+function v50Reset(message){v50Last=null;v50Text('v50Decision','NO DATA','wait');v50Text('v50Reversal','Waiting for valid data');v50Text('v50Pattern','NO DATA');v50Text('v50Zones','NO DATA');v50Text('v50Explanation',message||'Upload a valid screenshot or CSV.');v50Text('v50Status','No usable analysis.');document.dispatchEvent(new CustomEvent('fusion:analysis-reset'));}
 
 function estimateScreenshot(){
  const status=el('estimateStatus'),preview=el('shotPreview');
@@ -321,7 +294,7 @@ el('refresh')?.addEventListener('click',update);el('tf')?.addEventListener('chan
   if(known<6||poor)state='WAIT · LIMITED EVIDENCE';
   else if(x.decision==='WAIT')state='WAIT · MIXED SIGNALS';
   setText('v55LocalDecision',state);
-  const intermediate='After intermediate candle closes, upload a fresh screenshot';
+  const intermediate='Upload a fresh screenshot after the next 1-minute candle closes';
   setText('v55NextStep',intermediate);
   const reasons=[];
   reasons.push(`${count.up} UP / ${count.down} DOWN / ${count.wait} WAIT from ${known}/${all} usable indicators`);
@@ -331,7 +304,7 @@ el('refresh')?.addEventListener('click',update);el('tf')?.addEventListener('chan
   if(x.caution)reasons.push('possible nearby swing zone');
   if(x.patternConflict)reasons.push('pattern conflicts with bias');
   if(poor)reasons.push('low image extraction quality');
-  setText('v55LocalExplain',`${note}Visual pattern: ${x.pattern}. ${reasons.join('; ')}. Target candle: ${x.target||'—'}. Data captured ${formatTime(x.at)}; a newer image is needed to observe any market reversal. This is a second opinion, not a win probability.`);
+  setText('v55LocalExplain',`${note}Visual pattern: ${x.pattern}. ${reasons.join('; ')}. Screenshot analyzed at ${formatTime(x.at)}; a newer image is needed to detect any market reversal. This is a second opinion, not a win probability.`);
  }
  document.addEventListener('fusion:analysis',e=>{localUpdate(e.detail);});
  document.addEventListener('fusion:analysis-reset',()=>{snapshot=null;revision++;setText('v55LocalDecision','NO DATA');setText('v55NextStep','Upload a clear screenshot');setText('v55LocalExplain','Existing extraction failed or data is insufficient. No AI signal is available.');el('v55OnlineResult').hidden=true;setText('v55OnlineState','No valid screenshot analysis for online review.');});
