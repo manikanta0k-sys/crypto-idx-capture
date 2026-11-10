@@ -221,8 +221,9 @@ function v50Analyze(rows,result,source,quality){
  const detail=(wait?'WAIT recommended for demo analysis. ':'Directional bias: '+decision+' (not a next-candle guarantee). ')+reasons.join('; ')+'. '+(source==='screenshot'?'Prices are pixel-relative estimates, NOT actual Binomo OHLC. ':'Uses imported OHLC; verify its origin and completion timestamps. ')+ 'This cannot detect a reversal until NEW data is uploaded.';
  v50Text('v50Explanation',detail);
  v50Text('v50Status','Early next+2-minute outlook uses screenshot upload time. The intermediate candle is NOT known. Re-upload after the current minute closes. No live feed or guaranteed forecast.');v50Timer();
+ document.dispatchEvent(new CustomEvent('fusion:analysis',{detail:{source,at:now,decision,quality,pattern,reversal,zones,indicatorVotes:{up,down,wait:valid.filter(v=>v===0).length},validIndicators:directional,totalIndicators:18,estimated:source==='screenshot',volatility,conflict,caution,patternConflict,target:el('v54Target')?.textContent||'unknown'}}));
 }
-function v50Reset(message){v50Last=null;v54Snapshot=null;v54Render();v50Text('v50Decision','NO DATA','wait');v50Text('v50Reversal','Waiting for valid data');v50Text('v50Pattern','NO DATA');v50Text('v50Zones','NO DATA');v50Text('v50Explanation',message||'Upload a valid screenshot or CSV.');v50Text('v50Status','No usable analysis.');}
+function v50Reset(message){v50Last=null;v54Snapshot=null;v54Render();v50Text('v50Decision','NO DATA','wait');v50Text('v50Reversal','Waiting for valid data');v50Text('v50Pattern','NO DATA');v50Text('v50Zones','NO DATA');v50Text('v50Explanation',message||'Upload a valid screenshot or CSV.');v50Text('v50Status','No usable analysis.');document.dispatchEvent(new CustomEvent('fusion:analysis-reset'));}
 
 function estimateScreenshot(){
  const status=el('estimateStatus'),preview=el('shotPreview');
@@ -293,4 +294,87 @@ for(const [id,mode] of [['viewCandles','candles'],['viewLines','lines']]){
 let running=false;
 async function update(){if(running)return;running=true;const tf=el('tf')?.value||'1m',status=el('status');if(status)status.textContent='Loading live data…';const good=[],errors=[];await Promise.all(coins.map(async coin=>{try{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);let response;try{response=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${coin}USDT&interval=${tf}&limit=125`,{signal:ctrl.signal,cache:'no-store'});}finally{clearTimeout(timer)}if(!response.ok)throw Error('HTTP '+response.status);const raw=await response.json();const now=Date.now();const rows=raw.filter(x=>Number(x[6])<now).map(x=>[+x[0],+x[1],+x[2],+x[3],+x[4]]);if(rows.length<70)throw Error('Need 70 Binance candles');const v=classify(rows);good.push({...v,coin});}catch(e){errors.push(coin+': '+e.message)}}));good.sort((a,b)=>coins.indexOf(a.coin)-coins.indexOf(b.coin));renderCoinStatus(good);const votes=good.map(g=>g.result['EMA']+g.result['MACD']+g.result['RSI']);const u=votes.filter(v=>v>0).length,d=votes.filter(v=>v<0).length,z=votes.filter(v=>v===0).length;[['up',u],['down',d],['neutral',z]].forEach(([id,v])=>{if(el(id))el(id).textContent=good.length?v:'—'});if(el('bias'))el('bias').textContent=!good.length?'NO DATA':u>d?'UP':d>u?'DOWN':'MIXED';if(el('explain'))el('explain').textContent=`${good.length}/10 coins loaded. EMA + MACD + RSI descriptive vote, not future-price prediction.`;if(el('tenGraphInfo'))el('tenGraphInfo').textContent=`Updated ${new Date().toLocaleTimeString()} · ${good.length}/10 coins · Completed candles only.`;if(el('log'))el('log').textContent=errors.length?errors.join('\n'):'All 10 coin feeds loaded.';if(status)status.textContent=good.length?`Live: ${good.length}/10`:'Data unavailable';running=false;}
 el('refresh')?.addEventListener('click',update);el('tf')?.addEventListener('change',update);let timer=null;function schedule(){if(timer)clearInterval(timer);const ms=Number(el('interval')?.value||30000);if(ms>0)timer=setInterval(update,ms);}el('interval')?.addEventListener('change',schedule);schedule();update();
+})();
+
+/* V5.5 optional online AI, separate from all existing indicator computations */
+(()=>{'use strict';
+ const el=id=>document.getElementById(id);
+ const endpoint=el('v55Endpoint'),pass=el('v55Pass'),consent=el('v55Consent'),button=el('v55OnlineAnalyze');
+ if(!button)return;
+ let snapshot=null,revision=0,busy=false;
+ try{const saved=localStorage.getItem('fusion-v55-worker-url');if(saved)endpoint.value=saved;}catch(_){}
+ function setText(id,value){const node=el(id);if(node)node.textContent=value;}
+ function formatTime(ts){return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+ function localUpdate(x){
+  snapshot=x;revision++;
+  el('v55OnlineResult').hidden=true;
+  setText('v55OnlineState','New analysis is ready. Optional online AI requires your Worker URL, passcode and consent.');
+  const quality=String(x.quality||'').toUpperCase();
+  const count=x.indicatorVotes||{up:0,down:0,wait:0};
+  const known=count.up+count.down+count.wait;
+  const poor=quality.includes('LOW')||quality.includes('NO DATA');
+  const all=x.totalIndicators||18;
+  const note=(x.estimated?'Pixel-derived screenshot data, not verified OHLC. ':'Imported OHLC: verify data source and timestamps. ');
+  let state='WAIT · CHECK DATA';
+  if(!poor&&known>0&&x.decision==='UP')state='UP BIAS · UNVERIFIED';
+  if(!poor&&known>0&&x.decision==='DOWN')state='DOWN BIAS · UNVERIFIED';
+  if(known<6||poor)state='WAIT · LIMITED EVIDENCE';
+  else if(x.decision==='WAIT')state='WAIT · MIXED SIGNALS';
+  setText('v55LocalDecision',state);
+  const intermediate='After intermediate candle closes, upload a fresh screenshot';
+  setText('v55NextStep',intermediate);
+  const reasons=[];
+  reasons.push(`${count.up} UP / ${count.down} DOWN / ${count.wait} WAIT from ${known}/${all} usable indicators`);
+  if(known<all)reasons.push(`${all-known} indicators lack usable data`);
+  if(x.conflict)reasons.push('indicator conflict');
+  if(x.volatility)reasons.push('unusual candle range');
+  if(x.caution)reasons.push('possible nearby swing zone');
+  if(x.patternConflict)reasons.push('pattern conflicts with bias');
+  if(poor)reasons.push('low image extraction quality');
+  setText('v55LocalExplain',`${note}Visual pattern: ${x.pattern}. ${reasons.join('; ')}. Target candle: ${x.target||'—'}. Data captured ${formatTime(x.at)}; a newer image is needed to observe any market reversal. This is a second opinion, not a win probability.`);
+ }
+ document.addEventListener('fusion:analysis',e=>{localUpdate(e.detail);});
+ document.addEventListener('fusion:analysis-reset',()=>{snapshot=null;revision++;setText('v55LocalDecision','NO DATA');setText('v55NextStep','Upload a clear screenshot');setText('v55LocalExplain','Existing extraction failed or data is insufficient. No AI signal is available.');el('v55OnlineResult').hidden=true;setText('v55OnlineState','No valid screenshot analysis for online review.');});
+ // NOTE: No online request occurs until consent is checked AND the user clicks.
+ async function imageForAi(){
+  const image=el('shotPreview');if(!image||!image.complete||!image.naturalWidth)throw Error('Select a Binomo screenshot first.');
+  const ratio=Math.min(1,1150/image.naturalWidth,880/image.naturalHeight);
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(image.naturalWidth*ratio));c.height=Math.max(1,Math.round(image.naturalHeight*ratio));
+  c.getContext('2d').drawImage(image,0,0,c.width,c.height);
+  const url=c.toDataURL('image/jpeg',.73);return url.slice(url.indexOf(',')+1);
+ }
+ endpoint.addEventListener('change',()=>{try{const u=new URL(endpoint.value.trim());if(u.protocol==='https:')localStorage.setItem('fusion-v55-worker-url',u.href);}catch(_){}});
+ button.addEventListener('click',async()=>{
+  if(busy)return;
+  const state=el('v55OnlineState');
+  if(!snapshot){state.textContent='NO DATA — analyze a fresh Binomo screenshot first.';return;}
+  if(snapshot.source!=='screenshot'){state.textContent='Online vision requires a screenshot, not CSV. Upload a screenshot.';return;}
+  if(Date.now()-snapshot.at>60000){state.textContent='STALE — upload a new screenshot before online AI analysis.';return;}
+  if(!consent.checked){state.textContent='Please consent before sending the image to the online AI.';return;}
+  if(!pass.value.trim()){state.textContent='Enter the Worker access passcode (not the Gemini API key).';return;}
+  let url;try{url=new URL(endpoint.value.trim());if(url.protocol!=='https:'||(!url.pathname.endsWith('/analyze')&&url.pathname!=='/'))throw Error('Use your HTTPS Cloudflare Worker /analyze URL.');}catch(_){state.textContent='Enter a valid HTTPS Worker URL, e.g. https://name.workers.dev/analyze';return;}
+  busy=true;button.disabled=true;button.textContent='Reviewing screenshot…';
+  const batch=revision;
+  state.textContent='Sending only this image + non-sensitive indicator summary to your configured Worker…';
+  try{
+   const imageBase64=await imageForAi();
+   const controller=new AbortController();const task=setTimeout(()=>controller.abort(),28000);
+   let response;
+   try{response=await fetch(url.href,{method:'POST',headers:{'Content-Type':'application/json','X-Worker-Passcode':pass.value},body:JSON.stringify({imageBase64,mimeType:'image/jpeg',summary:{decision:snapshot.decision,quality:snapshot.quality,pattern:snapshot.pattern,estimated:snapshot.estimated,indicatorVotes:snapshot.indicatorVotes,target:snapshot.target}}),signal:controller.signal,cache:'no-store'});}
+   finally{clearTimeout(task);}
+   const data=await response.json().catch(()=>({error:'Server did not return JSON.'}));
+   if(!response.ok)throw Error(data.error||`Online AI HTTP ${response.status}`);
+   if(batch!==revision){state.textContent='New screenshot arrived: previous AI response discarded.';return;}
+   const v=data.analysis||{};
+   setText('v55OnlineSummary','Overview: '+String(v.summary||'No AI summary').slice(0,600));
+   setText('v55OnlineBullish','Bullish clues: '+String(v.bullish_clues||'None verifiable').slice(0,400));
+   setText('v55OnlineBearish','Bearish clues: '+String(v.bearish_clues||'None verifiable').slice(0,400));
+   setText('v55OnlineCaution','Caution: '+String(v.caution||'No confidence guarantee').slice(0,400));
+   setText('v55OnlineRecheck','Next screenshot: '+String(v.next_screenshot||'After the next completed candle').slice(0,400));
+   el('v55OnlineResult').hidden=false;
+   state.textContent='Online AI review completed · static screenshot only · NOT live Binomo data.';
+  }catch(e){state.textContent='Online AI unavailable: '+e.message+' Local insights above are still free and active.';}
+  finally{busy=false;button.disabled=false;button.textContent='Analyze Screenshot Online';}
+ });
+ setInterval(()=>{if(snapshot&&Date.now()-snapshot.at>=60000){setText('v55LocalBadge','STALE · LOCAL');setText('v55NextStep','Upload a fresh screenshot; previous analysis is old');}else if(snapshot)setText('v55LocalBadge','LOCAL · FREE');},5000);
 })();
