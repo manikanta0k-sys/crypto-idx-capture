@@ -1,12 +1,13 @@
-Crypto 10 Fusion V5.2 + Advanced Chart Analysis — 2026-11-12
+Crypto 10 Fusion V5.2 + 22 Indicator Combined Graph
 
-UPLOAD ALL THREE FILES to the root of your GitHub Pages repo:
-- index.html
-- fusion-indicators.js
-- advanced-chart-tools.js
+Original V5.2 fusion-indicators.js and previous advanced-chart-tools.js are byte-for-byte unchanged. Smart Candle Assistant V5.2 HTML section is unchanged.
 
-Original V5.2 indicator formulas, screenshot analysis and Smart Candle Assistant decisions were NOT changed.
-One non-invasive event was added after successful screenshot/CSV analysis to send completed rows to the NEW graph module.
-Extra optional collapsible panel: responsive canvas candlestick chart with overlay switches, pan/zoom controls, Aroon(25), previous-bar Donchian(20), Choppiness(14), and Keltner(EMA20+ATR10).
-No external libraries, no paid APIs, no live Binomo OHLC feed. NO DATA / INSUFFICIENT DATA on missing or short input. Screenshot-derived prices are approximate; use demo research only.
-The custom candlestick chart is TradingView-STYLE, not the TradingView proprietary product or live integration.
+New: one compact graph showing the original 18 indicators plus Aroon, Donchian, Choppiness, Keltner. Colors are descriptive indicator classifications; ATR and Choppiness are shown as non-directional CONTEXT. Not a probability or prediction. Original 18 detailed graph cards remain available under an expandable section.
+
+Deploy all four files to the root of your GitHub Pages repository:
+  index.html
+  fusion-indicators.js
+  advanced-chart-tools.js
+  combined-22-indicators.js
+
+No Binomo live data connection. Screenshot derived OHLC is approximate; authorised CSV is preferable.
