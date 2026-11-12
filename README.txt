@@ -1,16 +1,12 @@
-Crypto 10 Fusion V5.2 + Mini Fusion | Focused Layout
+Crypto 10 Fusion V5.2 + Advanced Chart Analysis — 2026-11-12
 
-SOURCE: V5.2 Mini Fusion Visible. The original fusion-indicators.js is byte-for-byte unchanged.
+UPLOAD ALL THREE FILES to the root of your GitHub Pages repo:
+- index.html
+- fusion-indicators.js
+- advanced-chart-tools.js
 
-CHANGES:
-- Original Section 2 graphical UP/DOWN/WAIT summary hidden, DOM retained for original calculations.
-- Existing 10 Binance coin box + Mini Fusion comparison moved together into Section 2.
-- Removed “Tap to see graph” green banner.
-- Hide long Shortcut setup instructions and OHLC CSV form behind optional collapsible details (not deleted).
-- Add a small Free Chart Tools collapsed panel mirroring existing trend, pattern, zones, volatility results. No new indicators or third-party live feeds added.
-- Other advanced panels remain hidden. Smart Candle Assistant and screenshot analysis preserved.
-- Separate market status is NOT a Binomo next-candle prediction. No auto trading.
-
-INSTALL: Upload index.html AND fusion-indicators.js to the GitHub Pages repository root; commit both. Open https://manikanta0k-sys.github.io/crypto-idx-capture/?v=52focused ; allow deploy.
-
-TESTING: JavaScript syntax + ZIP integrity checked. No iPhone browser or live API test performed.
+Original V5.2 indicator formulas, screenshot analysis and Smart Candle Assistant decisions were NOT changed.
+One non-invasive event was added after successful screenshot/CSV analysis to send completed rows to the NEW graph module.
+Extra optional collapsible panel: responsive canvas candlestick chart with overlay switches, pan/zoom controls, Aroon(25), previous-bar Donchian(20), Choppiness(14), and Keltner(EMA20+ATR10).
+No external libraries, no paid APIs, no live Binomo OHLC feed. NO DATA / INSUFFICIENT DATA on missing or short input. Screenshot-derived prices are approximate; use demo research only.
+The custom candlestick chart is TradingView-STYLE, not the TradingView proprietary product or live integration.
