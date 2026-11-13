@@ -59,50 +59,60 @@ function renderBinomoIndicators(result,meta){
 }
 // EXPERIMENTAL screenshot candle extraction. Pixel-relative OHLC only; no price-scale calibration.
 function extractScreenshotCandles(img){
- const canvas=document.createElement('canvas');const scale=Math.min(1,1200/img.naturalWidth);canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);
+ // Screenshot-only pixel extraction. This never claims to recover real Binomo OHLC.
+ // Crop presets and adaptive scanning improve resilience to different iPhone screenshots.
+ const canvas=document.createElement('canvas');const scale=Math.min(1,1100/img.naturalWidth);
+ canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
  const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
  const pix=ctx.getImageData(0,0,w,h).data;
- // Chart crop avoids top status bar, bottom controls and right-hand expiry overlay.
- const left=Math.round(w*.025),right=Math.round(w*.945),top=Math.round(h*.075),bottom=Math.round(h*.66);
- const columns=[];
- for(let x=left;x<right;x++){
-  let green=[],red=[];
-  for(let y=top;y<bottom;y++){
-   const k=(y*w+x)*4,r=pix[k],g=pix[k+1],b=pix[k+2];
-   if(g>75&&g>r*1.28&&g>b*1.12&&r<165)green.push(y);
-   else if(r>110&&r>g*1.35&&r>b*1.15&&g<170)red.push(y);
+ const all={upper:[.07,.91,.07,.48],standard:[.055,.925,.08,.67],middle:[.06,.92,.21,.75],tight:[.10,.89,.14,.62],full:[.035,.95,.06,.82]};
+ const mode=document.getElementById('ncCrop')?.value||'auto';
+ const regions=mode==='auto'?['standard','upper','middle','tight']:all[mode]?[mode]:['standard'];
+ const attempts=[];
+ function scan(preset){
+  const [xA,xB,yA,yB]=all[preset],left=Math.round(w*xA),right=Math.round(w*xB),top=Math.round(h*yA),bottom=Math.round(h*yB);
+  const columns=[];
+  for(let x=left;x<right;x++){
+   let green=[],red=[];
+   for(let y=top;y<bottom;y+=2){const k=(y*w+x)*4,r=pix[k],g=pix[k+1],b=pix[k+2];
+    if(g>73&&g>r*1.24&&g>b*1.08&&r<195)green.push(y);
+    else if(r>97&&r>g*1.27&&r>b*1.1&&g<185)red.push(y);
+   }
+   const z=green.length>red.length*1.20?1:red.length>green.length*1.20?-1:0;
+   const ys=z===1?green:z===-1?red:[];
+   columns.push({x,sign:z,count:ys.length,ys});
   }
-  const vals=green.length>=red.length?green:red,sign=green.length>=red.length?1:-1;
-  columns.push({x,sign,count:vals.length,ys:vals});
+  const runs=[],one=[];let run=[];
+  function flush(){if(run.length){runs.push(run);run=[];}}
+  for(const c of columns){if(c.sign&&c.count>=2){if(run.length&&c.sign!==run[run.length-1].sign)flush();run.push(c);}else flush();}flush();
+  const candidateWidths=runs.map(r=>r.length).filter(n=>n>=2&&n<=27).sort((a,b)=>a-b);
+  const median=candidateWidths.length?candidateWidths[Math.floor(candidateWidths.length/2)]:8;
+  const bars=[];let rejected=0;
+  const maxWidth=Math.max(14,Math.min(33,median*2.5));
+  for(const run of runs){
+   if(run.length<2||run.length>maxWidth){rejected++;continue;}
+   const allY=run.flatMap(c=>c.ys);if(!allY.length){rejected++;continue;}
+   const hi=Math.min(...allY),lo=Math.max(...allY);
+   if(lo-hi<3){rejected++;continue;}
+   const sorted=run.slice().sort((a,b)=>b.count-a.count), core=sorted.slice(0,Math.min(3,sorted.length));
+   const body=core[0],openY=run[0].sign===1?Math.max(...body.ys):Math.min(...body.ys),closeY=run[0].sign===1?Math.min(...body.ys):Math.max(...body.ys);
+   const base=h+100;
+   const o=base-openY,high=base-hi,low=base-lo,c=base-closeY;
+   if(![o,high,low,c].every(Number.isFinite)||low>Math.min(o,c)||high<Math.max(o,c)){rejected++;continue;}
+   bars.push({x:run.reduce((t,v)=>t+v.x,0)/run.length,row:[0,o,high,low,c]});
+  }
+  bars.sort((a,b)=>a.x-b.x);
+  // Discard rightmost detected candle. It may be the running candle.
+  if(bars.length)bars.pop();
+  const quality=bars.length-0.7*rejected-(median>22?6:0);
+  return {preset,detected:bars.length,rejected,median,groups:runs.length,quality,rows:bars.map((x,i)=>[i*60000,...x.row.slice(1)])};
  }
- // Segment contiguous candle-colored pixels; split at low-density column gaps.
- const runs=[];let run=[];
- function flush(){if(run.length){runs.push(run);run=[];}}
- for(const c of columns){if(c.count>=2){if(run.length&&c.sign!==run[run.length-1].sign)flush();run.push(c);}else flush();}flush();
- // Widths vary with zoom. A run much wider than a candle is ambiguous; reject instead of inventing bars.
- const widths=runs.map(r=>r.length).filter(v=>v>=2&&v<=18).sort((a,b)=>a-b);
- if(widths.length<8)throw Error('Only '+widths.length+' candidate candle groups. Try a clearer screenshot with the chart filling the screen.');
- const median=widths[Math.floor(widths.length/2)];
- const candles=[];let rejected=0;
- for(const run of runs){
-  if(run.length<2||run.length>Math.max(17,median*2.3)){rejected++;continue;}
-  const all=run.flatMap(v=>v.ys),hi=Math.min(...all),lo=Math.max(...all);
-  const body=run.filter(v=>v.count>=Math.max(3,Math.round(run.length*.65)));
-  const candidates=body.length?body:run;
-  // A thick body column tends to span body endpoints; thin wick spans high-low.
-  const center=candidates.reduce((a,b)=>a.count>b.count?a:b);
-  const bHi=Math.min(...center.ys),bLo=Math.max(...center.ys);
-  const open=run[0].sign===1?bLo:bHi,close=run[0].sign===1?bHi:bLo;
-  if(lo-hi<2){rejected++;continue;}
-  candles.push({x:run.reduce((a,v)=>a+v.x,0)/run.length,open,high:hi,low:lo,close});
- }
- // Exclude the rightmost candle (potentially still running).
- candles.sort((a,b)=>a.x-b.x);if(candles.length) candles.pop();
- if(candles.length<20)throw Error('Detected '+runs.length+' colored groups but only '+candles.length+' usable closed candles (minimum 20). Try zooming slightly IN, removing overlays, or use CSV.');
- if(rejected>runs.length*.65)throw Error('Too many ambiguous candle groups ('+rejected+'). Try a clearer screenshot or CSV.');
- // Positive, pixel-relative prices (vertical inversion). No assertion of true OHLC prices.
- const rows=candles.map((v,i)=>[i*60000,1000-v.open,1000-v.high,1000-v.low,1000-v.close]);
- return {rows,detected:candles.length,rejected};
+ for(const preset of regions){attempts.push(scan(preset));}
+ attempts.sort((a,b)=>b.quality-a.quality);const best=attempts[0];
+ if(!best||best.detected<20){const found=attempts.map(v=>v.preset+': '+v.detected).join(' / ');
+  throw Error('Could not read 20 closed candles (crop scan: '+found+'). Crop the chart in Photos, keep 25–40 clear candles, or choose a different Chart Area preset.');}
+ if(best.rejected>Math.max(10,best.groups*.55))throw Error('Too many overlapping/ambiguous candle colours ('+best.rejected+'). Crop away indicators or use verified OHLC CSV.');
+ return {rows:best.rows,detected:best.detected,rejected:best.rejected,preset:best.preset,medianWidth:best.median};
 }
 // V4.9: descriptive diagnostics on the same pixel-derived closed candles; no new data feed.
 let v49AnalyzedAt=0;
@@ -202,7 +212,7 @@ function estimateScreenshot(){
  if(!preview?.src||!preview.complete||!preview.naturalWidth){if(status)status.textContent='Upload and analyze a Binomo screenshot first.';return;}
  try{
   const data=extractScreenshotCandles(preview),result=classify(data.rows).result;
-  renderBinomoIndicators(result,{rows:data.rows,excluded:1,tf:60000});v49Diagnostics(data);v50Analyze(data.rows,result,'screenshot',el('v49Quality')?.textContent||'LOW CONFIDENCE');window.dispatchEvent(new CustomEvent('fusion:binomo-candles',{detail:{rows:data.rows,source:'screenshot',at:Date.now()}}));
+  renderBinomoIndicators(result,{rows:data.rows,excluded:1,tf:60000});v49Diagnostics(data);v50Analyze(data.rows,result,'screenshot',el('v49Quality')?.textContent||'LOW CONFIDENCE');window.dispatchEvent(new CustomEvent('fusion:binomo-candles',{detail:{rows:data.rows,source:'screenshot',at:Date.now(),detected:data.detected,rejected:data.rejected,preset:data.preset,quality:(data.detected>=35&&data.rejected<=Math.max(5,data.detected*.18)?'FAIR':'LOW CONFIDENCE')}}));
   if(status)status.textContent='EXPERIMENTAL: '+data.detected+' pixel-derived closed candles; '+data.rejected+' ambiguous groups ignored. These are NOT verified OHLC or official Binomo indicator readings.';
   if(el('binomoCsvStatus'))el('binomoCsvStatus').textContent='Screenshot-only ESTIMATE (unverified pixel-relative OHLC). For accurate indicators, import authorized Binomo OHLC CSV.';
  }catch(e){for(const id of ['indUp','indDown','indWait'])if(el(id))el(id).textContent='—';if(el('agreement'))el('agreement').textContent='NO DATA — screenshot candle extraction failed. No indicator votes were calculated.';v50Reset('Screenshot extraction failed: '+e.message);v49AnalyzedAt=0;v49Put('v49Quality','NO DATA','warn');v49Put('v49Trend','NO DATA','warn');v49Put('v49Vol','NO DATA','warn');v49Freshness();if(status)status.textContent='NO DATA — '+e.message+' Indicator results were not calculated.';window.dispatchEvent(new CustomEvent('fusion:binomo-candles',{detail:{rows:[],source:'none',error:e.message}}));}
