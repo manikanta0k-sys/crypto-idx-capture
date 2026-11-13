@@ -178,20 +178,24 @@ body{background:#080e19!important;font-size:16px}
 @media(max-width:820px){#priorityDeck{grid-template-columns:1fr}#priorityDeck #advancedChartAnalysis .adv-chart-wrap{max-height:200px}#priorityDeck #advancedChartAnalysis canvas{height:190px!important}}
 </style>
 
-<style id="dual-timeframe-styles">
-#dualTimeframePanel{order:0;border:1px solid #365779;border-radius:16px;background:#102037;padding:14px;margin:0;color:#e9f5ff}
-#dualTimeframePanel h3{margin:0;font-size:18px}#dualTimeframePanel p{font-size:12px;color:#aac0d6;line-height:1.5;margin:7px 0 12px}
-.dual-uploads{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dual-slot{background:#0b1729;border:1px solid #304760;border-radius:12px;padding:11px;min-width:0}
-.dual-slot strong{display:block;font-size:13px;margin-bottom:8px}.dual-slot label{font-size:12px;color:#acc2da;display:block;margin:7px 0}
-.dual-slot input[type=file]{width:100%;font-size:11px}.dual-slot select{width:100%;padding:8px}.dual-slot img{max-width:100%;max-height:120px;object-fit:contain;margin-top:8px;border-radius:7px}
-.dual-slot small{display:block;color:#a9c1d6;font-size:11px;margin-top:8px;line-height:1.5}
-.dual-options{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:12px 0}.dual-options label{font-size:12px;color:#bfd0e3;display:grid;gap:6px}
-.dual-options select,.dual-options input{padding:9px;border-radius:8px;background:#132941;color:white;border:1px solid #42607d;min-width:125px;max-width:100%}
-.dual-result{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#0a1729;border:1px solid #355574;border-radius:12px;padding:13px}
-.dual-result b{font-size:37px;line-height:1.1}.dual-result div{flex:1;min-width:140px}.dual-result p{margin:4px 0!important;font-size:12px}
-.dual-foot{margin-top:10px!important;color:#8eafc9!important}
-@media(max-width:600px){.dual-uploads{grid-template-columns:1fr}.dual-options{gap:9px}.dual-result b{font-size:32px}}
-</style></head><body><main class="wrap"><div class="head"><div><h1>CRYPTO 10 • FUSION V5.2</h1><div class="muted">Binomo screenshot analysis • Smart Candle Assistant • Advanced chart analysis</div></div><div class="pills" hidden="" style="display:none!important"><span class="badge" id="status">Not connected</span><button class="primary" id="refresh" type="button">↻ Update Graph</button></div></div><div class="v4-switch" hidden="" style="display:none!important"><label><input checked="" id="simpleMode" type="checkbox"/> Simple Mobile Mode</label><span>Show upload, summary, comparison and compact graphs first</span></div><div class="pills" hidden="" style="display:none!important"><label>Market timeframe <select id="tf"><option value="1m">1 minute</option><option value="3m">3 minutes</option><option value="5m">5 minutes</option></select></label><label>Refresh <select id="interval"><option value="30000">30 seconds</option><option value="60000">60 seconds</option><option value="0">Manual</option></select></label></div><div class="grid"><section class="card full" id="screenshotSection"><h2>1. Binomo Screenshot — Upload &amp; Analyze</h2><div class="shortcut-help"><details class="focused-optional" id="shortcutSetup"><summary>iPhone screenshot shortcut setup (optional)</summary><p>In Binomo, take a screenshot → tap Share → choose <b>Binomo to Dashboard</b>. Shortcut saves the image to Photos and opens this dashboard. Then tap the screenshot upload area, select the newest photo, and Analyze. iOS cannot silently send Binomo app screenshots to this website.</p><ol><li>Open Apple Shortcuts → + → New Shortcut. Name it <b>Binomo to Dashboard</b>.</li><li>Tap shortcut settings → Show in Share Sheet → accept Images.</li><li>Add action <b>Save to Photo Album</b>; input: Shortcut Input.</li><li>Add action <b>URL</b>; enter your published GitHub Pages dashboard address.</li><li>Add action <b>Open URLs</b>; input: URL.</li><li>In Binomo, take screenshot → Photos → Share → Binomo to Dashboard. In Chrome, tap screenshot selector and choose latest photo.</li></ol></details><button class="shortcut-paste" id="pasteShot" type="button">📋 Paste Screenshot (auto-analyze)</button><small id="pasteShotStatus">Clipboard image paste may not be available in iPhone Chrome. Photo picker always remains available.</small></div><div class="shot-upload"><label class="shot-drop" for="shotFile"><span class="shot-camera">📸</span><strong>Tap to select Binomo screenshot · Auto Analyze</strong><small>PNG / JPG • Analyzed on your device</small></label><input accept="image/png,image/jpeg,image/webp" id="shotFile" style="display:none" type="file"/><button class="shot-button" hidden="" id="shotAnalyze" style="display:none!important" type="button">Analyze Screenshot</button><div class="shot-message" id="shotMessage">Choose a chart screenshot — analysis starts automatically.</div><img alt="Selected chart screenshot" id="shotPreview" style="display:none;width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:12px"/><div class="shot-result" id="shotResult" style="display:none"><strong id="shotDirection">WAIT</strong><p id="shotStats"></p></div></div><div class="one-minute-card"><div class="one-minute-top"><b>⏱ 1-MINUTE SCREENSHOT BIAS</b><span id="minuteFresh">Upload first</span></div><div class="minute-direction" id="minuteDirection">WAIT</div><div class="minute-bars"><span>🟢 UP <b id="minuteUp">—</b></span><span>🔴 DOWN <b id="minuteDown">—</b></span><span>⚪ WAIT <b id="minuteWait">—</b></span></div><p id="minuteNote">Select a 1-minute Binomo chart screenshot for automatic analysis.</p><details><summary>18-indicator check for screenshot</summary><p>ADX, Momentum, CCI, Awesome Oscillator, RSI, Fractals, PSAR, Moving Average, MACD, Bollinger Bands, Fractal Chaos Bands, Alligator, ATR, Stochastic, EMA, Supertrend, Stochastic RSI and Williams %R require candle OHLC data and cannot be calculated reliably from this screenshot. The 18-indicator panel requires verified Binomo OHLC CSV input.</p></details><div class="v4-quick"><div><small>Approx. closed color groups</small><strong id="closedCandles">—</strong></div><div><small>Detected</small><strong id="detectedCount">—</strong></div><div><small>Image quality</small><strong id="qualityState">—</strong></div><div><small>Next 1m boundary</small><strong id="countdown">—</strong></div></div><p class="muted" id="qualityWarning">Upload a clear chart to check visual quality.</p></div></section><div class="mini-fusion-dock"><section class="card full graph-card" id="tenGraphPanel"><h2>2. Binance 10 Coins — Compact Status</h2>
+<style id="idx-lens-timeframe-css">
+.idx-lens{margin:12px 0;padding:13px;background:#0b1d2c;border:1px solid #3d627c;border-radius:15px}
+.idx-lens-head{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;align-items:center}
+.idx-lens-head>strong{font-size:15px;color:#edfaff}.idx-lens-head span{font-weight:850;font-size:10px;background:#243b4d;color:#d2e5f5;padding:6px 8px;border-radius:9px}
+.idx-lens-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.idx-lens-controls label{font-size:11px;color:#a9c5d9;display:flex;flex-direction:column;gap:6px}
+.idx-lens-controls select{font-size:13px;width:100%;background:#142a3d;color:#eef6fe;border:1px solid #426581;padding:9px;border-radius:9px;min-width:0}
+.idx-lens-answer{display:flex;gap:16px;align-items:center;background:#112c41;border-radius:12px;border:1px solid #284f68;padding:12px}
+.idx-lens-answer>strong{font-size:29px;min-width:100px;color:#cbd5e1;letter-spacing:.5px}
+.idx-lens-answer b{font-size:13px;display:block}.idx-lens-answer small{font-size:11px;color:#aac2d7;display:block;margin-top:5px;line-height:1.55}
+.idx-lens-caution{font-size:10px;color:#99b5c8;line-height:1.5;margin:9px 0 0}
+@media(max-width:400px){.idx-lens{padding:10px}.idx-lens-answer{gap:9px}.idx-lens-answer>strong{min-width:79px;font-size:24px}}
+</style></head><body><main class="wrap"><div class="head"><div><h1>CRYPTO 10 • FUSION V5.2</h1><div class="muted">Binomo screenshot analysis • Smart Candle Assistant • Advanced chart analysis</div></div><div class="pills" hidden="" style="display:none!important"><span class="badge" id="status">Not connected</span><button class="primary" id="refresh" type="button">↻ Update Graph</button></div></div><div class="v4-switch" hidden="" style="display:none!important"><label><input checked="" id="simpleMode" type="checkbox"/> Simple Mobile Mode</label><span>Show upload, summary, comparison and compact graphs first</span></div><div class="pills" hidden="" style="display:none!important"><label>Market timeframe <select id="tf"><option value="1m">1 minute</option><option value="3m">3 minutes</option><option value="5m">5 minutes</option></select></label><label>Refresh <select id="interval"><option value="30000">30 seconds</option><option value="60000">60 seconds</option><option value="0">Manual</option></select></label></div><div class="grid"><section class="card full" id="screenshotSection"><h2>1. Binomo Screenshot — Upload &amp; Analyze</h2><div class="shortcut-help"><details class="focused-optional" id="shortcutSetup"><summary>iPhone screenshot shortcut setup (optional)</summary><p>In Binomo, take a screenshot → tap Share → choose <b>Binomo to Dashboard</b>. Shortcut saves the image to Photos and opens this dashboard. Then tap the screenshot upload area, select the newest photo, and Analyze. iOS cannot silently send Binomo app screenshots to this website.</p><ol><li>Open Apple Shortcuts → + → New Shortcut. Name it <b>Binomo to Dashboard</b>.</li><li>Tap shortcut settings → Show in Share Sheet → accept Images.</li><li>Add action <b>Save to Photo Album</b>; input: Shortcut Input.</li><li>Add action <b>URL</b>; enter your published GitHub Pages dashboard address.</li><li>Add action <b>Open URLs</b>; input: URL.</li><li>In Binomo, take screenshot → Photos → Share → Binomo to Dashboard. In Chrome, tap screenshot selector and choose latest photo.</li></ol></details><button class="shortcut-paste" id="pasteShot" type="button">📋 Paste Screenshot (auto-analyze)</button><small id="pasteShotStatus">Clipboard image paste may not be available in iPhone Chrome. Photo picker always remains available.</small></div><div id="idxTimeframeLens" class="idx-lens" aria-label="IDX Lens Timeframe Review">
+ <div class="idx-lens-head"><strong>⏱ IDX Lens · Timeframe Check</strong><span id="idxLensStatus">WAIT · NO DATA</span></div>
+ <div class="idx-lens-controls"><label>Screenshot chart timeframe<select id="idxChartTf"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="3">3 minutes</option><option value="5">5 minutes</option></select></label><label>Check after<select id="idxTargetTf"><option value="2">2 minutes</option><option value="3">3 minutes</option></select></label></div>
+ <div class="idx-lens-answer"><strong id="idxLensDirection">WAIT</strong><div><b id="idxLensTarget">2-minute view</b><small id="idxLensText">Upload the single Binomo chart screenshot below.</small></div></div>
+ <p class="idx-lens-caution" id="idxLensCaution">Uses completed candles only and excludes the running candle. This is a research bias versus the last visible completed close, not a guaranteed future price or live Binomo reading.</p>
+</div><div class="shot-upload"><label class="shot-drop" for="shotFile"><span class="shot-camera">📸</span><strong>Tap to select Binomo screenshot · Auto Analyze</strong><small>PNG / JPG • Analyzed on your device</small></label><input accept="image/png,image/jpeg,image/webp" id="shotFile" style="display:none" type="file"/><button class="shot-button" hidden="" id="shotAnalyze" style="display:none!important" type="button">Analyze Screenshot</button><div class="shot-message" id="shotMessage">Choose a chart screenshot — analysis starts automatically.</div><img alt="Selected chart screenshot" id="shotPreview" style="display:none;width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:12px"/><div class="shot-result" id="shotResult" style="display:none"><strong id="shotDirection">WAIT</strong><p id="shotStats"></p></div></div><div class="one-minute-card"><div class="one-minute-top"><b>⏱ 1-MINUTE SCREENSHOT BIAS</b><span id="minuteFresh">Upload first</span></div><div class="minute-direction" id="minuteDirection">WAIT</div><div class="minute-bars"><span>🟢 UP <b id="minuteUp">—</b></span><span>🔴 DOWN <b id="minuteDown">—</b></span><span>⚪ WAIT <b id="minuteWait">—</b></span></div><p id="minuteNote">Select a 1-minute Binomo chart screenshot for automatic analysis.</p><details><summary>18-indicator check for screenshot</summary><p>ADX, Momentum, CCI, Awesome Oscillator, RSI, Fractals, PSAR, Moving Average, MACD, Bollinger Bands, Fractal Chaos Bands, Alligator, ATR, Stochastic, EMA, Supertrend, Stochastic RSI and Williams %R require candle OHLC data and cannot be calculated reliably from this screenshot. The 18-indicator panel requires verified Binomo OHLC CSV input.</p></details><div class="v4-quick"><div><small>Approx. closed color groups</small><strong id="closedCandles">—</strong></div><div><small>Detected</small><strong id="detectedCount">—</strong></div><div><small>Image quality</small><strong id="qualityState">—</strong></div><div><small>Next 1m boundary</small><strong id="countdown">—</strong></div></div><p class="muted" id="qualityWarning">Upload a clear chart to check visual quality.</p></div></section><div class="mini-fusion-dock"><section class="card full graph-card" id="tenGraphPanel"><h2>2. Binance 10 Coins — Compact Status</h2>
 <p class="muted">Separate Binance market only — not Binomo Crypto IDX. Green = UP, red = DOWN, grey = WAIT.</p><div class="coin-status-board" id="coinStatusBoard">Loading Binance coin status…</div><canvas hidden="" id="tenGraph" style="display:none!important"></canvas><div hidden="" id="tenLegend" style="display:none!important"></div><div hidden="" id="tenGraphInfo" style="display:none!important"></div><button hidden="" id="viewCandles" style="display:none!important"></button><button hidden="" id="viewLines" style="display:none!important"></button><span hidden="" id="chartViewLabel" style="display:none!important"></span></section><aside aria-label="Mini Fusion Research Comparison" class="card mini-fusion-card" id="miniFusionPanel">
 <div class="mini-fusion-head"><h2>📊 Mini Fusion Graph</h2><span class="mini-tag">V5.2 ADD-ON</span></div>
 <p class="mini-fusion-sub">Binomo screenshot indicators vs Binance 10 coins · separate markets</p>
@@ -229,17 +233,7 @@ body{background:#080e19!important;font-size:16px}
 <div><small>Volatility</small><b id="focusVol">NO DATA</b></div>
 </div>
 <p class="focused-disclaimer">Uses the existing Binomo screenshot / authorized OHLC analysis. Pattern estimates are not TradingView, MetaTrader, broker-terminal or TrendSpider integrations. No external Binomo feed and no assured next-candle prediction.</p>
-</details><section id="dualTimeframePanel" class="full" aria-label="Two-screenshot timeframe analysis">
- <h3>🕒 2 Screenshots · Multi-Timeframe Analysis</h3>
- <p>Upload the same Binomo Crypto IDX market at two different chart timeframes. Select a 2m or 3m horizon to compare their estimated closed-candle trends.</p>
- <div class="dual-uploads">
-  <div class="dual-slot"><strong>📸 Screenshot A</strong><label for="dualTfA">Chart timeframe</label><select id="dualTfA"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="3">3 minutes</option><option value="5">5 minutes</option></select><label for="dualImgA">Choose image</label><input id="dualImgA" type="file" accept="image/png,image/jpeg,image/webp"><img id="dualPreviewA" alt="First chart preview" hidden><small id="dualStatusA">No screenshot selected.</small></div>
-  <div class="dual-slot"><strong>📸 Screenshot B</strong><label for="dualTfB">Chart timeframe</label><select id="dualTfB"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="3" selected>3 minutes</option><option value="5">5 minutes</option></select><label for="dualImgB">Choose image</label><input id="dualImgB" type="file" accept="image/png,image/jpeg,image/webp"><img id="dualPreviewB" alt="Second chart preview" hidden><small id="dualStatusB">No screenshot selected.</small></div>
- </div>
- <div class="dual-options"><label for="dualExpiry">Target duration<select id="dualExpiry"><option value="2">2 minutes</option><option value="3">3 minutes</option></select></label><label for="dualCaptureAt">Screenshot captured at (local time)<input id="dualCaptureAt" type="datetime-local"></label><button type="button" id="dualAnalyze">↻ Analyze Both</button></div>
- <div class="dual-result" aria-live="polite"><b id="dualDecision" style="color:#d9e1ee">WAIT</b><div><strong id="dualMeta">Waiting for two screenshots</strong><p id="dualReason">Upload both screenshots to calculate a comparison.</p><small>Selected expiry ends at: <span id="dualTargetAt">Set screenshot capture time</span></small></div></div>
- <p class="dual-foot">Analysis only. The rightmost potentially running candle is excluded. Screenshots cannot provide a verified current price, exact future position, or reliable win probability. No live Binomo connection; upload new screenshots as time passes. Use the same market and approximately the same capture time.</p>
-</section><section id="combined22Panel" class="combined22" aria-label="22 Indicator Combined Analysis Graph">
+</details><section id="combined22Panel" class="combined22" aria-label="22 Indicator Combined Analysis Graph">
   <div class="combined22-header">
     <div><h3>📊 22 Indicators — One Combined Graph</h3><p>Original 18 Indicators + Aroon, Donchian, Choppiness, Keltner · Binomo screenshot / OHLC only</p></div>
     <span class="combined22-chip" id="combined22DataChip">NO DATA</span>
@@ -370,7 +364,6 @@ setInterval(tick,1000);tick();})();</script><script src="fusion-indicators.js?v=
    adv.classList.add('focus-card');
    deck.appendChild(assistant);
    deck.appendChild(adv);
-   const dual=$('dualTimeframePanel'); if(dual)deck.insertAdjacentElement('afterend',dual);
    adv.open=true;
  }
  function updateCombined22Simple(){
@@ -424,4 +417,51 @@ setInterval(tick,1000);tick();})();</script><script src="fusion-indicators.js?v=
 })();
 </script>
 
-<script src="dual-timeframe-analysis.js?v=1"></script></body></html>
+<script id="idx-lens-timeframe-script">(()=>{'use strict';
+ const el=id=>document.getElementById(id);
+ let snapshot=null;
+ let selectionChanged=false;
+ const colors={UP:'#18d49b',DOWN:'#ff647a',WAIT:'#d0dbe9'};
+ const set=(id,msg)=>{const n=el(id);if(n)n.textContent=msg;};
+ const num=(x)=>{const y=Number(x);return Number.isFinite(y)?y:NaN;};
+ function state(word,status,info){
+   set('idxLensDirection',word);set('idxLensStatus',status);set('idxLensText',info);
+   if(el('idxLensDirection'))el('idxLensDirection').style.color=colors[word];
+   set('idxLensTarget',`${el('idxTargetTf')?.value||2}-minute view`);
+ }
+ function ema(data,n){const k=2/(n+1);let e=data[0];for(let i=1;i<data.length;i++)e=k*data[i]+(1-k)*e;return e;}
+ function review(){
+   const chartM=Number(el('idxChartTf')?.value||1),targetM=Number(el('idxTargetTf')?.value||2);
+   const label=`${chartM}m chart · ${targetM}m check`;
+   if(!snapshot || !snapshot.rows || !snapshot.rows.length){state('WAIT','WAIT · NO DATA','Upload the single Binomo chart screenshot below.');return;}
+   const rows=snapshot.rows;
+   if(rows.length<20){state('WAIT','WAIT · LIMITED',`${label}: only ${rows.length} completed candles; at least 20 required.`);return;}
+   if(chartM>targetM){state('WAIT','WAIT · TIMEFRAME',`${label}: the chart candle interval is longer than the target. Use a 1m chart for 2m/3m checks.`);return;}
+   // Relative geometry only; pixel derived screenshot prices are not exact market OHLC.
+   const recent=rows.slice(-Math.min(rows.length,30));
+   const closes=recent.map(r=>num(r.close));
+   if(closes.some(n=>!Number.isFinite(n))){state('WAIT','WAIT · DATA ERROR','Could not read closed candle levels.');return;}
+   const range=recent.map(r=>num(r.high)-num(r.low)).filter(x=>Number.isFinite(x)&&x>0);
+   if(range.length<12){state('WAIT','WAIT · DATA ERROR','Not enough valid completed candle ranges.');return;}
+   const avg=range.slice(-14).reduce((a,b)=>a+b,0)/Math.min(14,range.length);
+   const last=closes[closes.length-1];
+   const fast=ema(closes,5),slow=ema(closes,12);
+   const m3=last-closes[closes.length-4],m6=last-closes[closes.length-7];
+   const threshold=Math.max(avg*.18, 0.00001);
+   const votes=[m3>threshold?1:m3< -threshold?-1:0,m6>threshold*1.3?1:m6< -threshold*1.3?-1:0,fast-slow>threshold*.45?1:fast-slow< -threshold*.45?-1:0];
+   const up=votes.filter(v=>v===1).length,down=votes.filter(v=>v===-1).length;
+   // Conservative gating; 1m and 2m/3m horizons are not reliably predicted by screenshots.
+   const word=up===3?'UP':down===3?'DOWN':'WAIT';
+   const source=snapshot.source==='csv'?'authorized OHLC CSV':'screenshot-estimated candles';
+   const detail=word==='WAIT'?'Trend evidence is mixed or insufficient.':'Completed-candle momentum and EMA direction agree.';
+   const info=`${label} · ${rows.length} closed candles · ${detail} Based on ${source}, not live price. Recheck with a fresh screenshot at the chosen time.`;
+   state(word,`${word} · ${label}`,info);
+ }
+ window.addEventListener('fusion:binomo-candles',event=>{
+   const d=event.detail||{};
+   snapshot={rows:Array.isArray(d.rows)?d.rows:[],source:d.source||'none',at:d.at||Date.now()};
+   review();
+ });
+ for(const id of ['idxChartTf','idxTargetTf'])el(id)?.addEventListener('change',review);
+ state('WAIT','WAIT · NO DATA','Upload the single Binomo chart screenshot below.');
+})();</script></body></html>
