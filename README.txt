@@ -1,47 +1,26 @@
-CRYPTO 10 FUSION V5.2 — ALL-IN-ONE NEXT CANDLE MONITOR V1
-Build date: 13 November 2026
+CRYPTO 10 FUSION V5.2 — NEXT CANDLE MONITOR V2 (FIXED READOUT)
 
-FILES TO UPLOAD TO THE ROOT OF YOUR GITHUB PAGES REPOSITORY:
-  index.html
-  fusion-indicators.js
-  advanced-chart-tools.js
-  combined-22-indicators.js
-  next-candle-engine.js
-All five files must be in the SAME folder. Upload/commit them together; otherwise modules may not load.
+WHAT CHANGED
+- The old monitor combined time validity and technical direction into one WAIT. It now shows a CHART DIRECTION READOUT independently from the strictly timed next-candle decision.
+- Example: 2 DOWN, 0 UP, 3 NEUTRAL research checks shows DOWN LEAN (2/5), while TIMED NEXT-CANDLE DECISION stays WAIT if the photo is late, unverified, or low quality.
+- A screenshot taken at 09:34:39 does NOT justify an actionable 09:35–09:36 signal. Capture a new screenshot just after the 09:35 minute opens (first 9 seconds), and confirm freshness yourself.
+- Fresh capture is NEVER auto-assumed from file modification date or clipboard paste (an old photo pasted now can appear new).
+- Contextual capture guidance, reason labels and indicator vote explanations shown in the same panel.
+- Smart Candle Assistant V5.2, 18+4 graph, Binomo screenshot extraction, advanced chart tools, Binance 10 coin widget, other original modules are kept unchanged.
+- Historical journal from V1 retained using same browser localStorage key.
 
-ALTERNATIVE: Open Crypto_10_Fusion_Next_Candle_Standalone.html locally as a single-file dashboard.
-For best browser compatibility, publish the above multi-file version via GitHub Pages.
+FILES FOR GITHUB PAGES (same folder/root)
+index.html
+fusion-indicators.js
+advanced-chart-tools.js
+combined-22-indicators.js
+next-candle-engine.js
 
-WHAT THIS BUILD INCLUDES
-- Existing Crypto 10 Fusion V5.2 interface and all original research widgets.
-- Original Smart Candle Assistant V5.2 analysis code is BYTE-FOR-BYTE UNCHANGED.
-- Existing 18 indicators + Aroon, Donchian, Choppiness and Keltner shown in one 22-indicator graph.
-- Screenshot reader has a more flexible chart-area scanner. It still estimates colour-based candles, NOT verified Binomo quote OHLC.
-- New Next Candle Monitor V1: precise IST clock, last close, target 1m candle, research direction UP/DOWN/WAIT, entry freshness window, late signal => WAIT.
-- Screenshot chart-area dropdown (auto/standard/upper/middle/tight) and recheck button.
-- Research signal journal stored locally on this browser; manual WIN/LOSS/TIE outcome controls; CSV export and later CSV matching.
-- Historical 1m CSV backtest (requires at least 55 completed candles). It is not walk-forward validation or a forward guarantee.
+Open index.html after uploading all 5 files, or open the Standalone HTML locally in iPhone Chrome.
 
-IMPORTANT CLOCK EXAMPLE
-7:41 PM screenshot: the 7:41 candle is still running and must be excluded.
-The 7:42–7:43 target may be displayed, but the FINAL signal stays WAIT until a fresh screenshot just after 7:42:00 (or fresh timestamped CSV) supports it.
-7:42:00–7:42:08: target is 7:42–7:43; a fresh scan MAY show UP/DOWN if all conservative checks pass. No late entries or auto trading.
-At/after 7:43:00: compare the result from an actual completed candle. With screenshots this is a MANUAL outcome check. With matching later timestamped CSV, the journal can grade CSV signal outcomes.
-A 1-minute expiry that starts after a delayed entry is not identical to the chart candle close. Verify broker expiry times separately.
+LIMITATIONS
+- Screenshot OHLC is estimated from red/green pixels and can include other interface elements; the exact candle time and price cannot be validated from these readings.
+- Directional lean is NOT an actionable signal, win probability or trading recommendation. A live signal cannot be confirmed without reliable chart data and timestamps. Timer uses phone clock, not Binomo server time.
+- The code does not access Binomo accounts or automatically place real-money trades.
 
-DATA SOURCES / LIMITS
-- Binomo Crypto IDX is a separate market from Binance coins. Binance readings are never used as Crypto IDX candle OHLC.
-- Screenshot-derived candles may be incorrect; if too few/ambiguous, the system intentionally shows WAIT/DATA ERROR rather than an invented direction.
-- For reliable indicator calculations, use timestamped user-authorized 1-minute OHLC CSV with columns time,open,high,low,close. CSV time is candle START time. Prices are not verified by this dashboard.
-- NEVER interprets indicator vote fractions as win probabilities. No guaranteed 80% win rate.
-- No official Binomo live connection, no trading automation, no guaranteed market data freshness.
-- Screenshot quality can vary by phone, chart colors, crop, indicators, and candle zoom. Real-world reading success cannot be guaranteed.
-
-TROUBLESHOOTING DATA ERROR
-1. Use a clear 1-minute chart screenshot immediately after a minute boundary.
-2. Show at least 25–40 candles; avoid toolbars, popups and overlays over the candles.
-3. Crop to the candlestick chart using Photos if needed.
-4. In Next Candle Monitor > Screenshot quality, try Auto / Upper / Tight and tap Recheck image.
-5. If estimates remain unreadable, use properly timestamped OHLC CSV.
-
-All analysis is educational/research/demo only, not a substitute for your own verification.
+v2.0 2026-11-14

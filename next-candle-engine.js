@@ -14,7 +14,7 @@ const mean=v=>v.reduce((a,b)=>a+b,0)/Math.max(1,v.length);
 function ema(v,n){let p=NaN;return v.map(x=>{p=Number.isFinite(p)?p+(x-p)*2/(n+1):x;return p;});}
 function rsi(v,n=14){if(v.length<n+1)return NaN;let g=0,l=0;for(let i=1;i<=n;i++){const d=v[i]-v[i-1];g+=Math.max(d,0);l+=Math.max(-d,0);}g/=n;l/=n;for(let i=n+1;i<v.length;i++){let d=v[i]-v[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;}return l===0?(g?100:50):100-100/(1+g/l);}
 function decide(rows){
- const n=rows.length;if(n<50)return {dir:'WAIT',reason:`Need 50 completed candles; currently ${n}.`,score:0,up:0,down:0};
+ const n=rows.length;if(n<50)return {dir:'WAIT',reason:`Need 50 completed candles; currently ${n}.`,score:0,up:0,down:0,bias:'NO DATA',votes:[],blocks:['Insufficient candle samples']};
  const closes=rows.map(r=>r[4]),e9=ema(closes,9),e21=ema(closes,21),e12=ema(closes,12),e26=ema(closes,26);
  const mac=e12.map((v,i)=>v-e26[i]),sig=ema(mac,9),i=n-1,price=closes[i],last=rows[i];
  const trueRanges=rows.slice(1).map((r,j)=>Math.max(r[2]-r[3],Math.abs(r[2]-rows[j][4]),Math.abs(r[3]-rows[j][4])));
@@ -22,13 +22,14 @@ function decide(rows){
  const recent=rows.slice(-15),ranges=recent.map(r=>r[2]-r[3]),typical=median(ranges),lastRange=last[2]-last[3];
  const rs=rsi(closes),prior=rows.slice(-21,-1),resistance=Math.max(...prior.map(r=>r[2])),support=Math.min(...prior.map(r=>r[3]));
  let up=0,down=0;const votes=[];
- const add=(name,dir)=>{votes.push(name+': '+(dir>0?'UP':dir<0?'DOWN':'neutral'));if(dir>0)up++;if(dir<0)down++;};
+ const add=(name,dir)=>{votes.push({name,dir:dir>0?'UP':dir<0?'DOWN':'NEUTRAL'});if(dir>0)up++;if(dir<0)down++;};
  add('EMA trend',e9[i]>e21[i]&&e9[i]>e9[i-2]?1:e9[i]<e21[i]&&e9[i]<e9[i-2]?-1:0);
  const hist=mac[i]-sig[i],histPrev=mac[i-1]-sig[i-1];add('MACD',hist>0&&hist>histPrev?1:hist<0&&hist<histPrev?-1:0);
  add('RSI',rs>=53&&rs<=70?1:rs<=47&&rs>=30?-1:0);
  add('Closed candles',closes[i]>closes[i-1]&&closes[i-1]>=closes[i-2]?1:closes[i]<closes[i-1]&&closes[i-1]<=closes[i-2]?-1:0);
  add('Price vs EMA',price>e9[i]+atr*.04?1:price<e9[i]-atr*.04?-1:0);
  let dir=up>=4&&down<=1?'UP':down>=4&&up<=1?'DOWN':'WAIT';
+ const bias=up>=2&&up>=down+2?'UP LEAN':down>=2&&down>=up+2?'DOWN LEAN':'MIXED';
  const block=[];
  if(!Number.isFinite(atr)||atr<=0||typical<=0)block.push('Missing usable volatility data');
  if(lastRange>typical*2.5)block.push('Unusually large latest candle');
@@ -38,8 +39,8 @@ function decide(rows){
  if(dir==='UP'&&Number.isFinite(resistance)&&price<=resistance&&price>=resistance-atr*.65)block.push('Near prior resistance');
  if(dir==='DOWN'&&Number.isFinite(support)&&price>=support&&price<=support+atr*.65)block.push('Near prior support');
  if(block.length)dir='WAIT';
- const reason=dir==='WAIT'?(block.length?block.join('; '):`Conflicting rules (${up} UP / ${down} DOWN)`):`Research bias ${dir} (${up} UP / ${down} DOWN rules); not a verified probability`;
- return {dir,reason,up,down,votes,score:Math.max(up,down),atr};
+ const reason=dir==='WAIT'?(block.length?block.join('; '):`Only ${up} UP / ${down} DOWN of 5 rules; at least 4 aligned rules required for a directional timed decision`):`Research bias ${dir} (${up} UP / ${down} DOWN rules); not a verified probability`;
+ return {dir,reason,up,down,votes,bias,blocks:block,score:Math.max(up,down),atr};
 }
 function getInterval(rows){if(rows.length<2)return M;return median(rows.slice(-Math.min(30,rows.length)).slice(1).map((r,i,a)=>r[0]-rows[rows.length-a.length-1+i][0]));}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(journal.slice(-600)));}catch(_){put('ncJournalNote','Storage unavailable: journal will be lost when page closes.');}}
@@ -70,37 +71,55 @@ function show(dir,headline,reason,meta,valid=false){
  put('ncDirection',dir);const el=$('ncDirection');if(el){el.style.color=COLORS[dir]||COLORS.WAIT;el.className='nc-decision '+dir.toLowerCase();}
  put('ncHeadline',headline);put('ncReason',reason);put('ncData',meta);$('ncBadge').textContent=valid?'TIMED RESEARCH':'NO ACTIONABLE SIGNAL';
 }
+function paintBias(r,d){
+ const isCsv=d.source==='csv'; const b=r.bias||'NO DATA',read=$('ncBias');
+ put('ncBias',b);if(read)read.style.color=b==='UP LEAN'?COLORS.UP:b==='DOWN LEAN'?COLORS.DOWN:COLORS.WAIT;
+ put('ncBiasStrength',`${r.up||0} UP / ${r.down||0} DOWN / ${Math.max(0,5-(r.up||0)-(r.down||0))} NEUTRAL · ${Math.max(r.up||0,r.down||0)}/5 matching research checks · NOT win probability`);
+ put('ncBiasSource',isCsv?'USER CSV · CHECK TIMESTAMPS':'SCREENSHOT · PIXEL ESTIMATE');
+ put('ncBiasReason',`${r.reason} · This panel is a directional study, not a safe entry call. ${isCsv?'Check that the CSV actually matches the current instrument.':'Chart objects and indicators can be mistaken for candles.'}`);
+ const el=$('ncVotes');if(el){el.textContent='';if(!r.votes?.length){el.textContent='No completed candle data';}else for(const v of r.votes){const item=document.createElement('div');item.className='nc-vote '+v.dir.toLowerCase();const name=document.createElement('b');name.textContent=v.name;const stat=document.createElement('small');stat.textContent=v.dir;item.append(name,stat);el.append(item);}}
+}
 function preview(){
  const now=Date.now(),start=rounded(now),next=start+M;
- put('ncClock',ss(now));put('ncNextBoundary',hh(next));put('ncResultClock',hh(next+M));
- if(!dataset){put('ncLastClose','—');put('ncTarget',`${hh(next)} – ${hh(next+M)}`);show('WAIT','Upload data first','Choose a fresh screenshot or import 1-minute OHLC CSV. Screenshot candles are estimates.','No validated data');return;}
- const d=dataset,rows=d.rows,analysis=d.estimated,quality=d.quality||'',isCSV=d.source==='csv';
+ put('ncClock',ss(now));put('ncNextBoundary',hh(next));
+ if(!dataset){put('ncLastClose','—');put('ncTarget',`${hh(next)} – ${hh(next+M)}`);put('ncResultClock',hh(next+M));put('ncEntryWindow','No chart yet');put('ncPhase',`Capture the ${hh(next)} candle just after it opens`);put('ncPhaseDetail',`Open your 1-minute chart, take a new screenshot between ${hh(next)}:00 and :08 seconds, upload it immediately.`);show('WAIT','Upload screenshot / CSV','No chart data available. Screenshot can show an unverified directional study but not a reliable trade instruction.','No data available');return;}
+ const d=dataset,rows=d.rows,isCSV=d.source==='csv';
+ // The screenshot parser only yields pixel-relative levels, not true candle timestamps.
+ // A screenshot taken before the boundary is a PREVIEW, never an entry signal for the future candle.
  const target=isCSV?rows[rows.length-1][0]+M:(d.at-rounded(d.at)<9000?rounded(d.at):rounded(d.at)+M),targetEnd=target+M;
  put('ncTarget',`${hh(target)} – ${hh(targetEnd)}`);put('ncResultClock',hh(targetEnd));
- put('ncLastClose',isCSV?hh(rows[rows.length-1][0]+M):'Time unverified (pixel estimate)');
- put('ncCount',`${rows.length} closed · ${d.source==='csv'?'imported CSV':'pixel estimate'}${d.preset?' · '+d.preset+' crop':''}`);
- const timeRemaining=Math.max(0,Math.ceil((target+9000-now)/1000));
- put('ncEntryWindow',now<target?`Not started; refresh after ${hh(target)}`:now>=target+9000?'Expired / late':`${timeRemaining}s early-candle window`);
- const result=decide(rows);
+ put('ncLastClose',isCSV?hh(rows[rows.length-1][0]+M):'Time not measurable from pixels');
+ put('ncCount',`${rows.length} apparent closed · ${isCSV?'CSV candle levels':'unverified pixel estimates'}${d.preset?' · '+d.preset+' scan':''}`);
+ const secondsToNext=Math.max(0,Math.ceil((next-now)/1000));
+ let phase='',phaseDetail='';
+ if(now<target){phase=`NEXT CANDLE NOT OPEN · ${secondsToNext}s to ${hh(target)}`;phaseDetail=`Current ${hh(start)} screenshot can give a chart lean, but is not a valid snapshot for ${hh(target)}. Take another screenshot at the start of ${hh(target)}.`;}
+ else if(now<target+9000){phase=`CAPTURE WINDOW · ${Math.max(0,Math.ceil((target+9000-now)/1000))}s remaining`;phaseDetail='Screenshot must show this target candle just opening; confirm freshness manually. Do not use old clipboard images.';}
+ else{phase=`EXPIRED SNAPSHOT · next capture ${hh(next)}`;phaseDetail=`The ${hh(target)} target's early window has closed. A new 1-minute screenshot right after ${hh(next)} is needed. The old chart lean is for study only.`;}
+ put('ncPhase',phase);put('ncPhaseDetail',phaseDetail);
+ put('ncEntryWindow',now<target?`Not open; capture at ${hh(target)}`:now>=target+9000?'Late: new screenshot needed':`${Math.ceil((target+9000-now)/1000)}s left to review`);
+ const result=decide(rows);paintBias(result,d);
  const problems=[];
  if(d.source==='screenshot'){
-  if(!captureTrusted)problems.push('Confirm screenshot was captured right after this minute started');
-  if(captureAt&&Date.now()-captureAt>20000)problems.push('Photo file is older than 20 seconds; take a new screenshot');
-  if(!Number.isFinite(d.at)||Date.now()-d.at>9000)problems.push('Screenshot analysis is too old for this candle');
-  if(rows.length<35)problems.push('Too few screenshot-derived candles');
-  if(quality==='LOW CONFIDENCE')problems.push('Unreliable pixel extraction');
- }else if(rows.length<50)problems.push('Need 50 1m closed candles for research filter');
- if(isCSV){const tf=getInterval(rows);if(tf!==M||rows.slice(-10).some((r,i,a)=>i>0&&r[0]-a[i-1][0]!==M))problems.push('Recent OHLC timestamps are not consecutive 1-minute candles');}
- if(now<target)problems.push('Target candle has not opened: take a NEW screenshot right after it opens');
- if(now>=target+9000)problems.push('Signal late: first 9 seconds of target candle passed');
+  if(!captureTrusted)problems.push('Capture time unverified: tick the fresh chart confirmation only if truly just captured');
+  if(now-d.at>9000)problems.push('Upload/analysis not within the first 9 seconds of target');
+  if(rows.length<50)problems.push('Need 50 usable pixel-derived candles for these 5 research checks');
+  if(d.quality==='LOW CONFIDENCE')problems.push('Low-quality pixel reading: crop a clean candlestick chart or use timestamped CSV');
+ } else {
+  if(rows.length<50)problems.push('Need 50 consecutive completed 1-minute candles');
+  const tf=getInterval(rows);if(tf!==M||rows.slice(-10).some((r,i,a)=>i>0&&r[0]-a[i-1][0]!==M))problems.push('Imported OHLC timestamps are not consecutive 1-minute candles');
+  if(target<now-M||target>now+M)problems.push('Imported CSV does not describe the current upcoming candle');
+ }
+ if(now<target)problems.push('Target candle not open yet');
+ if(now>=target+9000)problems.push('Early signal window expired');
  if(now>=target+M)problems.push('Target candle already ended');
  const decision=problems.length?'WAIT':result.dir;
- const reason=[...problems,result.reason].filter(Boolean).join(' · ');
- const meta=`${isCSV?'Imported timestamped OHLC':'Unverified screenshot pixels'} · ${rows.length} closed candles · ${result.up||0} UP / ${result.down||0} DOWN rule votes`;
- show(decision,decision==='WAIT'?'WAIT · '+(problems.length?'TIMING / DATA CHECK':'RULES DISAGREE'):`${decision} · RESEARCH SIGNAL`,reason,meta,decision!=='WAIT');
+ const core=decision==='WAIT'?(problems.length?problems.slice(0,2).join(' · '):result.reason):result.reason;
+ const reason=core+(problems.length>2?` · +${problems.length-2} more timing/data checks`:'');
+ const meta=`${isCSV?'User-provided CSV; not a verified live feed':'Unverified chart pixels'} · ${rows.length} apparent closed candles · ${result.up||0} UP / ${result.down||0} DOWN research votes · see CHART DIRECTION READOUT above`;
+ show(decision,decision==='WAIT'?(now<target?'WAIT · NEXT CANDLE NOT OPEN':now>=target+9000?'WAIT · STALE / LATE':problems.length?'WAIT · DATA / TIME CHECK':'WAIT · NOT ENOUGH RULE AGREEMENT'):`${decision} · RESEARCH ONLY`,reason,meta,decision!=='WAIT');
  if(decision!=='WAIT')logSignal(decision,target,d.source,result.reason);
 }
-function renderFailure(err){dataset=null;captureTrusted=false;$('ncFreshConfirm').checked=false;put('ncCount','NO DATA');put('ncLastClose','—');put('ncJournalNote',`Candle reading: ${err}`);show('WAIT','WAIT · DATA ERROR',err+' · Screenshot paste success does not prove candles were read.','No candles available');}
+function renderFailure(err){dataset=null;captureTrusted=false;$('ncFreshConfirm').checked=false;put('ncBias','NO CHART DATA');put('ncBiasStrength','Analysis unavailable: candle extraction failed');put('ncBiasSource','NO DATA');put('ncVotes','No validated candles');put('ncBiasReason',err);put('ncCount','NO DATA');put('ncLastClose','—');put('ncJournalNote',`Candle reading: ${err}`);show('WAIT','WAIT · DATA ERROR',err+' · Screenshot paste success does not prove candles were read.','No candles available');}
 function backtest(rows){
  let total=0,win=0,loss=0,tie=0,signal=0;
  if(rows.length<55)return 'Backtest needs at least 55 timestamped 1-minute completed candles.';
@@ -118,7 +137,7 @@ function onData(e){const d=e.detail||{};if(!Array.isArray(d.rows)||d.rows.length
  if(source==='screenshot'){
   const file=$('shotFile')?.files?.[0];captureAt=file?.lastModified||0;
   // Recent photo metadata is only a freshness hint, not proof of correct chart candles.
-  captureTrusted=!!(captureAt&&Math.abs(Date.now()-captureAt)<=10000);$('ncFreshConfirm').checked=captureTrusted;
+  captureTrusted=false;$('ncFreshConfirm').checked=false; // Never infer fresh capture from paste/file metadata
   put('ncCaptureInfo',captureAt&&Math.abs(captureAt-Date.now())<10*M?`Photo file modified ${ss(captureAt)} · not a verified chart clock`:'Capture time unknown (paste/file metadata not trustworthy)');
  }else{captureTrusted=true;put('ncCaptureInfo','CSV candle timestamps accepted after completion check; source is user-supplied.');
   applyCsvOutcomes(rows);put('ncBacktest',backtest(rows));}

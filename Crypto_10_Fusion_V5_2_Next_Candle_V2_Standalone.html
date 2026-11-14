@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Crypto 10 Fusion Simple V2.5</title><style>
+:root{color-scheme:dark;--bg:#080e1a;--card:#121f32;--border:#2b3d55;--muted:#9aacc3;--green:#18d49b;--red:#ff647a;--yellow:#ffc76d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 100% 0,#182c4b,var(--bg) 55%);font:14px system-ui,sans-serif;color:#eef5ff}.wrap{max-width:1120px;margin:auto;padding:18px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:25px;margin:0}h1 span{color:var(--green)}.muted,small{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.card{border:1px solid var(--border);background:var(--card);border-radius:16px;padding:18px;min-width:0}h2{font-size:16px;margin:0 0 12px}.stat{font-size:32px;font-weight:800}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.pills{display:flex;gap:8px;flex-wrap:wrap}button,select{background:#253954;border:1px solid #49617c;color:white;border-radius:9px;padding:10px 13px;font:inherit}button{cursor:pointer}button.primary{background:#0eac81;border:0;font-weight:750;color:#061811}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#1b2b42;border-radius:11px;padding:12px}.metric strong{display:block;font-size:20px;margin-top:4px}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:9px 6px;border-bottom:1px solid #293b52}th{color:var(--muted);font-size:12px}canvas{display:block;width:100%;height:170px;border-radius:10px;background:#0c1728}.note{border:1px solid #66513a;background:#30271e;padding:12px;border-radius:10px;line-height:1.5}.full{grid-column:1/-1}.foot{margin:22px 0;color:var(--muted);font-size:12px}.badge{font-size:12px;background:#24374d;border-radius:20px;padding:7px 11px}#log{white-space:pre-wrap;font-size:12px;color:#a9bfd6;max-height:120px;overflow:auto}@media(max-width:750px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:20px}.wrap{padding:12px}td,th{font-size:12px;padding:9px 3px}}
+
+/* Simplified V2 mobile-first layout */
+body{background:#080e19!important;font-size:16px}
+.wrap{max-width:1100px}.grid{display:flex!important;flex-direction:column;gap:14px}
+.card{border-radius:18px!important;padding:17px!important}
+#screenshotSection{order:0}#tenGraphPanel{order:0}.head{margin-bottom:14px}
+#tenGraphPanel h2{font-size:21px}.graph-scroll{width:100%;overflow-x:auto;border-radius:12px;background:#081422}
+#tenGraph{display:block;width:100%;height:330px;min-width:600px;background:#081422}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.legend span{display:inline-flex;align-items:center;gap:5px;background:#1a293b;border:1px solid #304157;border-radius:20px;padding:6px 9px;font-size:12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%}
+.details-card{background:#121f32;border:1px solid #2b3d55;border-radius:13px;overflow:hidden}
+.details-card>summary{padding:15px;cursor:pointer;font-weight:750;list-style-position:inside}
+.details-card>.card{border:0!important;border-radius:0!important}
+#bias{font-size:35px!important;font-weight:900}#screenshotSection iframe{max-width:100%}
+@media(max-width:750px){#tenGraph{height:290px}.wrap{padding:10px}.card{padding:13px!important}.head h1{font-size:23px}}
+
+/* Simple result graphics */
+.fusion-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:15px}.fusion-result{background:#0b1727;border:1px solid #2b3d55;border-radius:16px;padding:18px;min-width:0}.fusion-result h3{font-size:14px;margin:0 0 14px;color:#dbeafe}.fusion-word{font-size:clamp(21px,4vw,34px);font-weight:900;margin-bottom:20px}.fusion-bars{display:grid;gap:13px}.fusion-row{display:grid;grid-template-columns:75px 1fr 46px;align-items:center;gap:8px;font-size:13px}.fusion-row b{text-align:right}.fusion-track{height:15px;border-radius:20px;background:#273449;overflow:hidden}.fusion-fill{height:100%;border-radius:20px;transition:width .35s}.fusion-fill.up{background:#18d49b}.fusion-fill.down{background:#ff647a}.fusion-fill.wait{background:#94a3b8}.fusion-result p{font-size:12px;margin-top:18px}.fusion-foot{font-size:12px;color:#9aacc3;margin-top:13px}@media(max-width:700px){.fusion-cards{grid-template-columns:1fr}.fusion-result{padding:14px}}
+.ai-config{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}.ai-config label{width:100%;font-size:13px;color:#b6c8dd}.ai-config input{min-width:190px;flex:1;padding:12px;background:#0b1525;border:1px solid #39516f;border-radius:10px;color:white;font-size:15px}.ai-config button{padding:12px;border:0;border-radius:10px;background:#234b67;color:#fff;font-weight:700}.ai-config span{font-size:12px;color:#b8c9da}</style><style>#screenshotLab{display:block;min-height:1100px}#screenshotSection{scroll-margin-top:12px}@media(max-width:600px){#screenshotLab{height:1250px!important}#screenshotSection{padding:10px}}</style><style>
+#chatBox{margin-top:16px}#chatMessages{height:290px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:12px;background:#0b1525;border:1px solid #30425c;border-radius:12px}.chat-msg{padding:10px 12px;border-radius:12px;max-width:93%;white-space:pre-wrap;line-height:1.5}.chat-msg.bot{background:#20324b;align-self:flex-start}.chat-msg.user{background:#0b6b58;align-self:flex-end}.chat-controls{display:flex;gap:8px;margin-top:10px}.chat-controls input{flex:1;min-width:0;background:#0b1525;color:white;border:1px solid #39516f;border-radius:10px;padding:12px;font:inherit}.chat-controls button,.chat-quick button{background:#0fae80;color:#06130e;border:0;border-radius:10px;padding:10px 13px;font-weight:700;cursor:pointer}.chat-quick{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.chat-quick button{background:#223b55;color:#e7f5ff;font-size:12px}@media(max-width:600px){#chatMessages{height:270px}.chat-controls input{font-size:16px}}
+</style><style>
+/* Simple mobile-first visual hierarchy */
+.wrap{max-width:900px}.grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px}
+.card{border-radius:18px;padding:18px}.card h2{font-size:19px;margin:0 0 12px}
+.head h1{font-size:clamp(23px,5vw,34px);letter-spacing:-.5px}
+#screenshotLab{height:650px!important;min-height:0!important}
+#tenGraph{width:100%;height:auto;max-height:350px}
+#bias{font-size:clamp(34px,8vw,60px);line-height:1.15}
+#chatBox{grid-column:1/-1}.details-card{opacity:.9}
+.details-card summary{font-size:14px}
+#tenGraphPanel{order:0}
+@media(max-width:600px){.wrap{padding:12px}.card{padding:14px!important}#screenshotLab{height:580px!important}#screenshotSection{padding:12px!important}.head{gap:12px}.head .pills{gap:6px}.graph-scroll{overflow-x:auto}}
+</style><style>/* Compact screenshot section: default short, optional full view */
+#screenshotLab{height:320px!important;min-height:0!important;display:block}
+#screenshotSection.expanded #screenshotLab{height:760px!important}
+@media(max-width:600px){#screenshotLab{height:290px!important}#screenshotSection.expanded #screenshotLab{height:740px!important}}
+#screenshotSection h2{margin-bottom:5px}
+#screenshotSection > p.muted{margin:5px 0 10px;font-size:12px}
+.ai-config{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}.ai-config label{width:100%;font-size:13px;color:#b6c8dd}.ai-config input{min-width:190px;flex:1;padding:12px;background:#0b1525;border:1px solid #39516f;border-radius:10px;color:white;font-size:15px}.ai-config button{padding:12px;border:0;border-radius:10px;background:#234b67;color:#fff;font-weight:700}.ai-config span{font-size:12px;color:#b8c9da}</style><style>#screenshotLab{min-height:0!important;height:760px;overflow:hidden!important}#screenshotSection{overflow:visible!important;padding:12px!important}#screenshotSection h2{font-size:19px!important}</style><style>#screenshotSection{background:#142138!important} .shot-upload{padding:4px 0 12px}.shot-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;min-height:165px;padding:20px 12px;border:2px dashed #476485;border-radius:15px;background:#192b46;cursor:pointer}.shot-camera{font-size:35px}.shot-drop strong{font-size:17px}.shot-drop small{color:#9aaac1;font-size:12px}.shot-button{display:block;width:100%;margin-top:12px;padding:15px 12px;background:#10b58e;border:0;border-radius:12px;font-weight:800;font-size:17px;color:#061522;cursor:pointer}.shot-message{font-size:13px;color:#a5b5cc;margin-top:12px}.shot-result{margin-top:12px;padding:15px;border-radius:13px;background:#0b1728;border:1px solid #334963}.shot-result strong{font-size:25px}.shot-result p{font-size:13px;color:#bdcadb}#screenshotSection iframe{display:none!important}</style><style>.indicator-signal{padding:16px;margin:12px 0;border:1px solid #30465e;border-radius:16px;background:#0c1728}.indicator-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;gap:10px}.indicator-top strong{font-size:20px}.indicator-top .up{color:#10b981}.indicator-top .down{color:#f43f5e}.indicator-top .wait{color:#cbd5e1}.indicator-line{display:grid;grid-template-columns:52px minmax(0,1fr) 45px;align-items:center;gap:10px;margin:11px 0;font-size:14px}.indicator-track{height:12px;background:#26364c;border-radius:8px;overflow:hidden}.indicator-line b{text-align:right;font-variant-numeric:tabular-nums}@media(max-width:440px){.indicator-signal{padding:12px}.indicator-line{gap:7px}}</style><style>.indicator-chart-group{background:#0c1728;border:1px solid #30465e;border-radius:16px;padding:15px;margin:15px 0}.indicator-chart-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:18px}.indicator-chart-heading .up{color:#10b981}.indicator-chart-heading .down{color:#f43f5e}.indicator-chart-heading .wait{color:#cbd5e1}.indicator-plot{position:relative;height:205px;display:flex;justify-content:space-around;gap:12px;padding:16px 8px 26px;margin-top:14px;border-bottom:1px solid #51647e}.indicator-gridline{position:absolute;left:0;right:0;border-top:1px dashed #34465c;pointer-events:none}.indicator-column{position:relative;z-index:1;flex:1;max-width:90px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}.indicator-column>b{font-size:13px;margin-bottom:5px}.indicator-column-bar{width:68%;min-height:0;border-radius:6px 6px 0 0;transition:height .3s}.indicator-column>span{position:absolute;top:calc(100% + 7px);font-size:12px;font-weight:700;color:#c5d4e7}@media(max-width:450px){.indicator-plot{height:175px}.indicator-chart-group{padding:12px}}.one-minute-card{background:#0b1728;border:1px solid #34516e;border-radius:14px;padding:15px;margin-top:14px}.one-minute-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#bcd0e7;font-size:13px}.minute-direction{font-size:38px;font-weight:900;margin:12px 0;color:#cbd5e1}.minute-bars{display:flex;gap:8px;flex-wrap:wrap}.minute-bars span{background:#20344d;border-radius:9px;padding:9px;font-size:13px;flex:1;min-width:80px}.minute-bars b{display:block;font-size:19px}.one-minute-card p{font-size:13px;color:#b6c8dc;line-height:1.5}.one-minute-card details{font-size:12px;color:#aebed3}.one-minute-card summary{cursor:pointer} </style><style>
+.v4-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 0;padding:12px 16px;background:#172740;border:1px solid #38506a;border-radius:12px}.v4-switch label{font-weight:800}.v4-switch span{font-size:12px;color:#aebed4}.v4-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.v4-quick>div{background:#1a2b44;padding:12px;border-radius:11px;min-width:0}.v4-quick small{display:block;color:#9eb1c9;font-size:12px}.v4-quick strong{display:block;font-size:20px;margin-top:4px}.v4-comparison{font-size:21px;font-weight:900;color:#d7e9ff;background:#10223a;padding:16px;border:1px solid #385574;border-radius:12px}.v4-simple .v4-advanced{display:none!important}.v4-simple .indicator-chart-group{padding:10px;margin:10px 0}.v4-simple .indicator-plot{height:130px}.v4-simple .indicator-chart-heading{font-size:15px}@media(max-width:600px){.v4-quick{grid-template-columns:repeat(2,minmax(0,1fr))}.v4-quick strong{font-size:17px}.v4-comparison{font-size:18px}}
+.chart-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}.chart-choice{border:1px solid #35516a;border-radius:10px;background:#1a2b43;color:#e6f0ff;padding:10px 13px;font-weight:700;cursor:pointer}.chart-choice.active{background:#0d9278;border-color:#14cba0;color:white}#chartViewLabel{font-size:12px;color:#a8bdd1}.graph-scroll{overflow-x:auto}#tenGraph{min-width:650px;max-height:none!important;height:auto!important}@media(max-width:600px){#tenGraph{min-width:650px}} </style><style id="compact-indicators-v43">
+#indicatorAgreementPanel #agreement{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;align-items:stretch}
+#indicatorAgreementPanel .indicator-chart-group{margin:0!important;padding:10px!important;border-radius:11px;min-width:0}
+#indicatorAgreementPanel .indicator-chart-heading{font-size:12px!important;gap:4px;flex-wrap:wrap;line-height:1.25}
+#indicatorAgreementPanel .indicator-chart-heading span{font-size:11px!important}
+#indicatorAgreementPanel .indicator-plot{height:94px!important;margin-top:4px!important;padding:7px 2px 19px!important;gap:4px!important}
+#indicatorAgreementPanel .indicator-column>b{font-size:10px!important;margin-bottom:2px!important}
+#indicatorAgreementPanel .indicator-column>span{font-size:9px!important;top:calc(100% + 3px)!important}
+#indicatorAgreementPanel .indicator-column-bar{border-radius:3px 3px 0 0!important}
+#indicatorAgreementPanel .indicator-gridline{opacity:.4}
+#indicatorAgreementPanel>.muted{font-size:11px;margin:8px 0}
+@media(max-width:720px){#indicatorAgreementPanel #agreement{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#indicatorAgreementPanel .indicator-chart-group{padding:8px!important}#indicatorAgreementPanel .indicator-plot{height:78px!important}}
+@media(max-width:340px){#indicatorAgreementPanel #agreement{grid-template-columns:1fr}}
+</style><style>#tenGraphPanel{padding:13px!important}#tenGraphPanel h2{font-size:17px!important;margin:0 0 5px!important}#tenGraphPanel p{font-size:11px!important;margin:4px 0 10px!important}.coin-status-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.coin-chip{border:1px solid #32455f;border-radius:9px;background:#14253b;padding:9px 3px;text-align:center;font-weight:800;font-size:13px;min-width:0}.coin-chip small{display:block;font-size:10px;margin-top:3px}.coin-chip.up{color:#17d6a1;border-color:#1d735f}.coin-chip.down{color:#ff6981;border-color:#874457}.coin-chip.wait{color:#a9b9cc}@media(max-width:460px){.coin-status-board{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.coin-chip{font-size:11px;padding:8px 2px}.coin-chip small{font-size:9px}}#indicatorAgreementPanel .indicator-chart-group{display:none!important}#indicatorAgreementPanel #agreement{display:block!important;font-size:13px;color:#aabbd0}</style><style>#indicatorAgreementPanel .indicator-chart-group{display:block!important}#indicatorAgreementPanel #agreement{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}#indicatorAgreementPanel .indicator-chart-group{padding:8px!important;margin:0!important}#indicatorAgreementPanel .indicator-plot{height:78px!important}#indicatorAgreementPanel .indicator-chart-heading{font-size:12px!important}.ohlc-import{margin:12px 0;padding:12px;background:#0d1b2e;border:1px solid #35506b;border-radius:12px}.ohlc-import input{width:100%;margin:10px 0;color:#dce8f6;font-size:13px}.csv-label{font-size:14px;font-weight:800}.ohlc-import .shot-button{margin:4px 0 10px;padding:11px;font-size:14px}#binomoCsvStatus{font-size:12px;line-height:1.5}.shortcut-help{border:1px solid #37516b;border-radius:12px;padding:12px;background:#102238;margin:10px 0 14px}.shortcut-help strong{font-size:14px}.shortcut-help p,.shortcut-help li,.shortcut-help small{font-size:12px;color:#b8c9da;line-height:1.55}.shortcut-help details{margin:9px 0}.shortcut-help summary{cursor:pointer;color:#a5e8d5;font-size:13px}.shortcut-help ol{padding-left:20px}.shortcut-paste{background:#254560;border:1px solid #476b86;border-radius:9px;color:#fff;padding:9px 12px;font-size:12px;font-weight:700;margin:6px 0}.shortcut-help small{display:block} </style><style id="v49-diagnostics-style">.v49-panel{margin:12px 0;padding:12px;border:1px solid #37516b;border-radius:12px;background:#0d1b2e}.v49-panel h3{font-size:15px;margin:0 0 9px}.v49-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.v49-cell{padding:9px;border:1px solid #30465e;border-radius:9px;background:#152840;min-width:0}.v49-cell small{display:block;font-size:11px;color:#a8bdd3}.v49-cell strong{display:block;margin:4px 0;font-size:14px;overflow-wrap:anywhere}.v49-cell span{font-size:11px;color:#a8bdd3;line-height:1.4}.v49-note{font-size:11px;color:#b2c4d9;line-height:1.5;margin:9px 0 0}.v49-ok{color:#16c79a!important}.v49-warn{color:#fbbf24!important}.v49-bad{color:#ff5874!important}</style><style id="smart-candle-v50">
+.v50-card{background:#0b1728;border:1px solid #36536f;border-radius:13px;padding:13px;margin:12px 0;color:#e4efff}
+.v50-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.v50-head h3{font-size:17px;margin:0}.v50-pill{font-size:12px;font-weight:800;border-radius:7px;background:#26364b;padding:6px 10px;color:#d8e7fa}
+.v50-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:11px 0}
+.v50-item{background:#172740;border-radius:10px;padding:11px;min-width:0}.v50-item small{display:block;color:#a6bbd4;font-size:11px;margin-bottom:5px}.v50-item strong{display:block;font-size:15px;overflow-wrap:anywhere}
+.v50-explain{font-size:13px;line-height:1.55;background:#172740;border-radius:10px;padding:12px;margin:10px 0}
+.v50-muted{color:#a8bad0;font-size:12px;line-height:1.5}.v50-up{color:#16c79a!important}.v50-down{color:#ff5874!important}.v50-wait{color:#fbbf24!important}
+@media(max-width:420px){.v50-card{padding:11px}.v50-item{padding:9px}.v50-item strong{font-size:13px}}
+</style><style>#comparisonPanel{display:none!important}</style><style id="v52-mini-fusion-style">
+.mini-fusion-dock{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(295px,.85fr);gap:12px;grid-column:1/-1;align-items:stretch}
+.mini-fusion-dock>#tenGraphPanel{grid-column:auto!important;min-width:0}
+.mini-fusion-card{grid-column:auto!important;min-width:0;padding:13px!important;background:#0e1d31!important}
+.mini-fusion-head{display:flex;gap:6px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.mini-fusion-head h2{font-size:15px!important;margin:0!important}
+.mini-tag{font-size:9px;letter-spacing:.06em;color:#89bba9;border:1px solid #315b55;padding:4px 6px;border-radius:7px;white-space:nowrap}
+.mini-fusion-sub{font-size:10px;line-height:1.4;color:#96a8bc;margin:7px 0 12px!important}
+.mini-fusion-group{padding:9px 10px;border-radius:10px;background:#122740;border:1px solid #2b4562;margin:0 0 8px}
+.mini-fusion-label{display:flex;justify-content:space-between;align-items:baseline;gap:7px;font-size:11px}
+.mini-fusion-label span{font-size:10px;color:#9cb4cb;white-space:nowrap}
+.mini-fusion-track{display:flex;height:10px;overflow:hidden;border-radius:10px;margin:8px 0 5px;background:#314055}
+.mini-fusion-track i{display:block;height:100%;width:0;transition:width .25s ease}
+.mini-fusion-track i.up{background:#17c79b}.mini-fusion-track i.down{background:#f15e7a}.mini-fusion-track i.wait{background:#8d9baf}
+.mini-fusion-values{font-size:10px;color:#b3c3d8;line-height:1.4}
+.mini-fusion-verdict{display:flex;align-items:center;gap:8px;background:#102138;border:1px solid #36536d;border-radius:10px;padding:10px;font-size:12px}
+.mini-fusion-verdict .mini-dot{height:9px;width:9px;border-radius:50%;background:#fbbf24;flex:0 0 auto}
+.mini-fusion-verdict.same .mini-dot{background:#16c79a}.mini-fusion-verdict.conflict .mini-dot{background:#ff5874}
+.mini-fusion-note{font-size:11px;color:#b9c8dc;line-height:1.5;padding:7px 1px}
+.mini-fusion-legend{display:flex;flex-wrap:wrap;gap:13px;margin-top:4px;color:#a9bed2;font-size:10px}
+.mini-fusion-legend span{display:flex;align-items:center;gap:4px}.mini-swatch{display:inline-block;width:8px;height:8px;border-radius:2px}
+.mini-swatch.up{background:#17c79b}.mini-swatch.down{background:#f15e7a}.mini-swatch.wait{background:#8d9baf}
+.mini-fusion-disclaimer{font-size:10px;color:#91a9be;line-height:1.5;margin:7px 0 0!important}
+@media(max-width:760px){.mini-fusion-dock{grid-template-columns:minmax(0,1fr)}.mini-fusion-card{padding:12px!important}}
+</style><style>
+/* V5.2 focused layout add-on only. Original analysis scripts unmodified. */
+#simpleSummary{display:none!important}
+.mini-fusion-dock{grid-column:1/-1;order:0}
+#tenGraphPanel .muted{font-size:11px;line-height:1.45}
+#indicatorAgreementPanel .ohlc-import{margin-top:10px}
+.focused-optional,.focused-research{border:1px solid #304963;border-radius:12px;background:#11243b;padding:10px 12px;margin:11px 0;color:#e4f2ff}
+.focused-optional>summary,.focused-research>summary{cursor:pointer;font-size:12px;font-weight:700;line-height:1.4;list-style:revert}
+.focused-research>summary small{font-size:10px;font-weight:500;color:#a8bcd2;display:inline}
+.focused-optional>p{font-size:12px;margin:10px 0}
+.focused-tools-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.focused-tools-grid>div{padding:10px;border-radius:9px;background:#1b304b;min-width:0}
+.focused-tools-grid small{display:block;font-size:11px;color:#b0c2d5;margin-bottom:5px}
+.focused-tools-grid b{font-size:12px;overflow-wrap:anywhere}
+.focused-disclaimer{color:#a2b6ca;font-size:11px;line-height:1.5}
+#miniFusionPanel{box-shadow:none!important;scroll-margin-top:14px}
+@media(max-width:600px){.mini-fusion-dock{display:grid;grid-template-columns:1fr;gap:10px}.mini-fusion-dock .card{padding:12px!important}.focused-tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.focused-research>summary small{display:block;margin-top:3px}}
+</style><style id="advanced-chart-style">
+.advanced-chart-tools{margin:12px 0;border:1px solid #35526d;border-radius:13px;background:#0d1c30;overflow:hidden;color:#dae9f7}
+.advanced-chart-tools>summary{cursor:pointer;padding:13px 15px;display:flex;flex-wrap:wrap;gap:5px 13px;align-items:center;justify-content:space-between;list-style:revert}
+.advanced-chart-tools>summary span{font-size:15px;font-weight:800;color:#f1f7ff}
+.advanced-chart-tools>summary small{font-size:11px;color:#9dbad1}
+.adv-body{padding:0 12px 13px}.adv-desc,.adv-foot{font-size:11px;line-height:1.55;color:#a5b8cb;margin:8px 2px 11px}.adv-meta{font-size:11px;color:#d5e5f3;background:#172f47;border:1px solid #304a64;border-radius:9px;padding:9px 10px;margin-bottom:9px}
+.adv-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.adv-metrics>div{padding:10px 9px;min-width:0;border-radius:10px;background:#192b43;border:1px solid #304761}.adv-metrics small{font-size:11px;color:#b4c6d9;display:block}.adv-metrics b{font-size:13px;display:block;margin:6px 0;color:#e9f5ff;word-break:break-word}.adv-metrics span{font-size:10px;color:#94aabe;display:block;line-height:1.3}
+.adv-chart-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;margin:15px 0 7px;font-size:13px}.adv-controls{display:flex;gap:9px;flex-wrap:wrap;color:#a9d4e2;font-size:11px}.adv-controls label{white-space:nowrap;display:flex;align-items:center;gap:3px}.adv-controls input{accent-color:#10b981}
+.adv-chart-wrap{width:100%;background:#0a1525;border:1px solid #263c54;border-radius:10px;overflow:hidden;touch-action:pan-y}.adv-chart-wrap canvas{display:block;width:100%;height:auto;max-height:350px;min-height:130px}.adv-chart-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px}.adv-chart-actions button{cursor:pointer;border:1px solid #375570;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;color:#dce9f6;background:#182b44}.adv-chart-actions span{color:#a4b6ca;font-size:11px;margin-left:auto}.adv-foot{margin-top:9px}
+@media(max-width:800px){.adv-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:390px){.adv-metrics b{font-size:12px}.advanced-chart-tools>summary span{font-size:14px}}
+</style>
+<style id="combined22-v52-style">
+#combined22Panel{background:#0d1c30;border:1px solid #34546d;border-radius:16px;padding:14px;margin:12px 0;color:#e5f1fc;min-width:0}
+.combined22-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.combined22-header h3{font-size:17px;line-height:1.3;margin:0 0 5px;color:#eff8ff}
+.combined22-header p,.combined22-note{font-size:11px;line-height:1.55;color:#a6bed2;margin:5px 0 0}
+.combined22-chip{border:1px solid #526d86;color:#c2d7e8;border-radius:7px;padding:5px 8px;font-size:10px;font-weight:800;white-space:nowrap}
+.combined22-counts{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 8px}.combined22-counts span{font-size:11px;font-weight:750;border:1px solid #354b64;padding:6px 8px;background:#142840;border-radius:9px}
+.combined22-meter{height:12px;border-radius:9px;overflow:hidden;display:flex;background:#293a52;border:1px solid #3a536c}.combined22-meter>span{height:100%;min-width:0}
+.combined22-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:12px}
+.combined22-item{border:1px solid #2f465e;background:#13263d;border-radius:9px;padding:7px 8px;min-width:0}
+.combined22-top{display:flex;align-items:baseline;justify-content:space-between;gap:6px;min-width:0}
+.combined22-name{color:#e0edf9;font-size:11px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.combined22-state{font-size:9px;font-weight:900;white-space:nowrap}
+.combined22-strip{height:4px;background:#26384d;border-radius:5px;margin-top:7px;overflow:hidden}
+.combined22-strip b{display:block;height:100%;border-radius:5px;width:100%}
+.combined22-tag{font-size:9px;color:#87a6bf;margin-top:4px}
+.combined22-loading{color:#a8bdd2;font-size:12px;grid-column:1/-1}
+.combined22-note{margin-top:12px}
+.combined22-originals{margin:12px 0;border:1px solid #36506a;border-radius:12px;background:#111f33;padding:10px}
+.combined22-originals>summary{cursor:pointer;color:#c5e4f7;font-size:12px;font-weight:700}
+.combined22-originals #agreement{margin-top:10px}
+@media (max-width:360px){.combined22-grid{grid-template-columns:1fr}}
+</style><style>
+.nc-panel{background:#0d1b2c!important;border:1px solid #31546a!important;padding:15px!important;min-width:0;color:#e6eff9}
+.nc-title{display:flex;justify-content:space-between;gap:10px;align-items:start;flex-wrap:wrap}.nc-title h2{margin:0;font-size:20px}.nc-title p{font-size:12px;margin:5px 0}.nc-v{font-size:11px;color:#89b5d3}.nc-topbadge{background:#26364a;color:#bbcee0;border-radius:18px;padding:8px 10px;font-size:10px;font-weight:800;max-width:170px;text-align:center;letter-spacing:.4px}
+.nc-clocks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}.nc-clocks>div{background:#13273c;border:1px solid #29475f;border-radius:12px;padding:11px 10px;min-width:0;display:flex;flex-direction:column;gap:7px}.nc-clocks small,.nc-signal small{font-size:10px;letter-spacing:.5px;color:#a9bfd2;text-transform:uppercase}.nc-clocks b{font-size:14px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;line-height:1.3}
+.nc-signal{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#101f30;border:1px solid #305777;border-radius:14px;padding:14px}.nc-signal>div:first-child{display:flex;flex-direction:column;gap:7px;min-width:0}.nc-decision{font-size:38px;line-height:1.05;letter-spacing:1px;color:#d3e0ed}.nc-signal span{color:#b4cbe1;font-size:13px}.nc-right{border-left:1px solid #2e485c;padding-left:12px;min-width:125px;display:flex;flex-direction:column;gap:5px}.nc-right b{font-size:12px;color:#d4eafa}.nc-reason{padding:12px;background:#18283b;border:1px solid #2b455e;border-radius:12px;font-size:13px;color:#f0d9b3;line-height:1.6;margin:10px 0}.nc-caption,.nc-footer{color:#9fb9cf;font-size:11px;line-height:1.55}.nc-footer{border-top:1px solid #2c435a;padding-top:10px;margin-top:14px}
+.nc-controls{margin:12px 0;border:1px solid #34506b;background:#102235;border-radius:13px;padding:12px}.nc-controls summary{cursor:pointer;font-size:13px;font-weight:750;color:#d5efff}.nc-controls[open] summary{margin-bottom:12px}.nc-controlrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.nc-controlrow label{font-size:12px;color:#b6c8da}.nc-controlrow select,.nc-controlrow button,.nc-journal-tools button{padding:10px 12px;border-radius:9px;background:#20364d;border:1px solid #3b5871;color:#e4f2ff;font-size:12px}.nc-controlrow select{max-width:100%}.nc-check{display:flex;align-items:flex-start;gap:8px;margin:12px 0;font-size:12px;color:#b8cfdf;line-height:1.5}.nc-check input{margin-top:3px;flex-shrink:0}.nc-controls p{font-size:11px;line-height:1.6}.nc-journal-tools{display:flex;flex-wrap:wrap;gap:7px}.nc-journal-line{border-top:1px solid #33465a;padding:9px 0;display:grid;grid-template-columns:1fr auto;gap:3px}.nc-journal-line small{color:#aebdcf;grid-column:1}.nc-journal-actions{grid-column:2;grid-row:1/span 2;display:flex;align-items:center;gap:4px}.nc-journal-actions button{border:1px solid #3d586f;background:#142c43;color:#bcd0de;border-radius:7px;padding:6px;font-size:10px}.nc-journal-actions button.nc-active{background:#1e5b5b;color:white}.nc-controls #ncJournalStats{font-size:12px;margin:12px 0;color:#d1e5f2}
+@media(max-width:580px){.nc-clocks{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.nc-clocks b{font-size:13px}.nc-panel{padding:12px!important}.nc-signal{align-items:stretch}.nc-decision{font-size:34px}.nc-right{min-width:115px}.nc-title h2{font-size:18px}.nc-controlrow{align-items:stretch}.nc-controlrow select{width:100%}}
+</style><style>
+.nc-bias-panel{border:1px solid #45627f;background:linear-gradient(145deg,#112b3d,#102033);border-radius:14px;padding:13px;margin:13px 0 9px}
+.nc-bias-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.nc-bias-head>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.nc-bias-head small{font-size:10px;letter-spacing:.5px;color:#9fbad1;font-weight:800}
+.nc-bias-head strong{font-size:27px;line-height:1.2;color:#c4d4e3}
+.nc-bias-head span:not(.nc-bias-tag){font-size:12px;color:#a3bdd1;line-height:1.5}
+.nc-bias-tag{padding:5px 8px;border-radius:6px;border:1px solid #486780;background:#1c3045;color:#b5d2e8;font-size:10px;font-weight:800}
+.nc-rule-box{margin-top:12px;border-top:1px solid #294b64;padding-top:10px}
+.nc-votes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.nc-vote{padding:7px 5px;border-radius:7px;border:1px solid #29445c;background:#14283c;display:flex;flex-direction:column;gap:4px;min-width:0;text-align:center}
+.nc-vote b{font-size:10px;overflow-wrap:anywhere;color:#c3dbec}.nc-vote small{font-size:10px;font-weight:850}.nc-vote.up small{color:#10d49b}.nc-vote.down small{color:#fb637d}.nc-vote.neutral small{color:#a8bfce}
+.nc-rule-box p{font-size:11px;color:#a8c0d2;line-height:1.5;margin:10px 0 0}
+.nc-timing-tip{background:#172840;border:1px solid #365a77;border-radius:11px;padding:11px;display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.nc-timing-tip span{font-size:10px;color:#b4d1e8;font-weight:800;letter-spacing:.5px}.nc-timing-tip b{font-size:14px;color:#e6f3fd}.nc-timing-tip small{font-size:11px;line-height:1.45;color:#a7bdd1}
+@media(max-width:600px){.nc-votes{grid-template-columns:repeat(3,minmax(0,1fr))}.nc-bias-head strong{font-size:25px}}
+</style></head><body><main class="wrap"><div class="head"><div><h1>CRYPTO 10 • FUSION V5.2 </h1><div class="muted">Binomo screenshot analysis • Binance 10-coin status • Mini Fusion research</div></div><div class="pills" hidden="" style="display:none!important"><span class="badge" id="status">Not connected</span><button class="primary" id="refresh" type="button">↻ Update Graph</button></div></div><div class="v4-switch" hidden="" style="display:none!important"><label><input checked="" id="simpleMode" type="checkbox"/> Simple Mobile Mode</label><span>Show upload, summary, comparison and compact graphs first</span></div><div class="pills" hidden="" style="display:none!important"><label>Market timeframe <select id="tf"><option value="1m">1 minute</option><option value="3m">3 minutes</option><option value="5m">5 minutes</option></select></label><label>Refresh <select id="interval"><option value="30000">30 seconds</option><option value="60000">60 seconds</option><option value="0">Manual</option></select></label></div><div class="grid"><section class="card full" id="screenshotSection"><h2>1. Binomo Screenshot — Upload &amp; Analyze</h2><div class="shortcut-help"><details class="focused-optional" id="shortcutSetup"><summary>iPhone screenshot shortcut setup (optional)</summary><p>In Binomo, take a screenshot → tap Share → choose <b>Binomo to Dashboard</b>. Shortcut saves the image to Photos and opens this dashboard. Then tap the screenshot upload area, select the newest photo, and Analyze. iOS cannot silently send Binomo app screenshots to this website.</p><ol><li>Open Apple Shortcuts → + → New Shortcut. Name it <b>Binomo to Dashboard</b>.</li><li>Tap shortcut settings → Show in Share Sheet → accept Images.</li><li>Add action <b>Save to Photo Album</b>; input: Shortcut Input.</li><li>Add action <b>URL</b>; enter your published GitHub Pages dashboard address.</li><li>Add action <b>Open URLs</b>; input: URL.</li><li>In Binomo, take screenshot → Photos → Share → Binomo to Dashboard. In Chrome, tap screenshot selector and choose latest photo.</li></ol></details><button class="shortcut-paste" id="pasteShot" type="button">📋 Paste Screenshot (auto-analyze)</button><small id="pasteShotStatus">Clipboard image paste may not be available in iPhone Chrome. Photo picker always remains available.</small></div><div class="shot-upload"><label class="shot-drop" for="shotFile"><span class="shot-camera">📸</span><strong>Tap to select Binomo screenshot · Auto Analyze</strong><small>PNG / JPG • Analyzed on your device</small></label><input accept="image/png,image/jpeg,image/webp" id="shotFile" style="display:none" type="file"/><button class="shot-button" hidden="" id="shotAnalyze" style="display:none!important" type="button">Analyze Screenshot</button><div class="shot-message" id="shotMessage">Choose a chart screenshot — analysis starts automatically.</div><img alt="Selected chart screenshot" id="shotPreview" style="display:none;width:100%;max-height:230px;object-fit:contain;border-radius:12px;margin-top:12px"/><div class="shot-result" id="shotResult" style="display:none"><strong id="shotDirection">WAIT</strong><p id="shotStats"></p></div></div><div class="one-minute-card"><div class="one-minute-top"><b>⏱ 1-MINUTE SCREENSHOT BIAS</b><span id="minuteFresh">Upload first</span></div><div class="minute-direction" id="minuteDirection">WAIT</div><div class="minute-bars"><span>🟢 UP <b id="minuteUp">—</b></span><span>🔴 DOWN <b id="minuteDown">—</b></span><span>⚪ WAIT <b id="minuteWait">—</b></span></div><p id="minuteNote">Select a 1-minute Binomo chart screenshot for automatic analysis.</p><details><summary>18-indicator check for screenshot</summary><p>ADX, Momentum, CCI, Awesome Oscillator, RSI, Fractals, PSAR, Moving Average, MACD, Bollinger Bands, Fractal Chaos Bands, Alligator, ATR, Stochastic, EMA, Supertrend, Stochastic RSI and Williams %R require candle OHLC data and cannot be calculated reliably from this screenshot. The 18-indicator panel requires verified Binomo OHLC CSV input.</p></details><div class="v4-quick"><div><small>Approx. closed color groups</small><strong id="closedCandles">—</strong></div><div><small>Detected</small><strong id="detectedCount">—</strong></div><div><small>Image quality</small><strong id="qualityState">—</strong></div><div><small>Next 1m boundary</small><strong id="countdown">—</strong></div></div><p class="muted" id="qualityWarning">Upload a clear chart to check visual quality.</p></div></section><section class="card full nc-panel" id="ncPanel" aria-label="Next Candle Research Monitor">
+<div class="nc-title"><div><h2>⏱ Next Candle Monitor <span class="nc-v">V2 · fixed readout</span></h2><p class="muted">Directional study + time validity shown separately · completed candles only · Smart Candle Assistant V5.2 unchanged</p></div><span class="nc-topbadge" id="ncBadge">NO ACTIONABLE SIGNAL</span></div>
+<div class="nc-bias-panel" aria-live="polite">
+<div class="nc-bias-head"><div><small>📊 CHART DIRECTION READOUT · separate from entry signal</small><strong id="ncBias">NO CHART DATA</strong><span id="ncBiasStrength">Upload screenshot / CSV to see the directional study.</span></div><span class="nc-bias-tag" id="ncBiasSource">UNVERIFIED</span></div>
+<div class="nc-rule-box"><div id="ncVotes" class="nc-votes">No votes yet</div><p id="ncBiasReason">Unlike a timed signal, this direction readout remains visible even while the candle is still forming or the screenshot is late.</p></div>
+</div>
+<div class="nc-timing-tip"><span>🕐 CAPTURE GUIDE</span><b id="ncPhase">Upload a chart first</b><small id="ncPhaseDetail">For a 09:35–09:36 target candle, capture at 09:35:00–09:35:08, not at 09:34:39. Never reuse an old image as a fresh signal.</small></div>
+<div class="nc-clocks">
+<div><small>🇮🇳 India clock</small><b id="ncClock">—</b></div>
+<div><small>Last verified candle close</small><b id="ncLastClose">—</b></div>
+<div><small>Target candle</small><b id="ncTarget">—</b></div>
+<div><small>Next boundary</small><b id="ncNextBoundary">—</b></div>
+</div>
+<div class="nc-signal"><div><small>TIMED NEXT-CANDLE DECISION</small><strong id="ncDirection" class="nc-decision wait">WAIT</strong><span id="ncHeadline">Upload data first</span></div><div class="nc-right"><small>EARLY ENTRY CHECK</small><b id="ncEntryWindow">No data</b><small>Result review after next close</small><b id="ncResultClock">—</b></div></div>
+<p class="nc-reason" id="ncReason">Waiting for a usable chart or OHLC file.</p>
+<div class="nc-caption" id="ncData">No validated candles</div><div class="nc-caption" id="ncCount">0 closed candles</div>
+<details class="nc-controls"><summary>📷 Screenshot quality & chart-area help</summary>
+<div class="nc-controlrow"><label for="ncCrop">Chart area preset</label><select id="ncCrop"><option value="auto">Auto scan (recommended)</option><option value="standard">Standard chart</option><option value="upper">Upper chart</option><option value="middle">Middle chart</option><option value="tight">Tight chart crop</option></select><button id="ncRetry" type="button">↻ Recheck image</button></div>
+<label class="nc-check"><input id="ncFreshConfirm" type="checkbox"/> I personally took this screenshot of the current 1-minute chart within the FIRST 9 seconds of this minute (image time cannot be verified automatically)</label>
+<p id="ncCaptureInfo" class="muted">Screenshot capture clock not yet checked.</p>
+<p class="muted">If reader shows DATA ERROR: crop in Photos to include 25–40 visible coloured candles and exclude the price controls/indicator panels. Pixel values are estimates, not actual quoted prices.</p>
+<p id="ncDataError" class="muted"></p>
+</details>
+<details class="nc-controls"><summary>🧪 Strategy research &amp; history (no trading)</summary>
+<div class="nc-journal-tools"><button id="ncBacktestBtn" type="button">Backtest imported 1m CSV</button><button id="ncExport" type="button">Export journal CSV</button><button id="ncClear" type="button">Clear journal</button></div>
+<p id="ncBacktest" class="muted">CSV backtest will only evaluate completed timestamped 1-minute candles. Past results do not predict future performance.</p>
+<div id="ncJournalStats">No results yet</div><div id="ncJournalList"></div><p id="ncJournalNote" class="muted">UP/DOWN research signals log to this device. Use WIN/LOSS/TIE buttons for actual outcomes, or import later matching CSV for automatic grading.</p>
+</details>
+<p class="nc-footer">Research/demo only. NOT live Binomo data, automated trading, verified next-candle probability or a guaranteed winning formula. Chart lean is not a trade signal. A TIMED UP/DOWN requires fresh capture confirmation, acceptable pixel quality, aligned candle time and adequate rule agreement; otherwise WAIT. Never auto-trades.</p>
+</section><div class="mini-fusion-dock"><section class="card full graph-card" id="tenGraphPanel"><h2>2. Binance 10 Coins — Compact Status</h2>
+<p class="muted">Separate Binance market only — not Binomo Crypto IDX. Green = UP, red = DOWN, grey = WAIT.</p><div class="coin-status-board" id="coinStatusBoard">Loading Binance coin status…</div><canvas hidden="" id="tenGraph" style="display:none!important"></canvas><div hidden="" id="tenLegend" style="display:none!important"></div><div hidden="" id="tenGraphInfo" style="display:none!important"></div><button hidden="" id="viewCandles" style="display:none!important"></button><button hidden="" id="viewLines" style="display:none!important"></button><span hidden="" id="chartViewLabel" style="display:none!important"></span></section><aside aria-label="Mini Fusion Research Comparison" class="card mini-fusion-card" id="miniFusionPanel">
+<div class="mini-fusion-head"><h2>📊 Mini Fusion Graph</h2><span class="mini-tag">V5.2 ADD-ON</span></div>
+<p class="mini-fusion-sub">Binomo screenshot indicators vs Binance 10 coins · separate markets</p>
+<div class="mini-fusion-group">
+<div class="mini-fusion-label"><strong>Binomo · 18 Indicators</strong><span id="miniBinomoCount">NO DATA</span></div>
+<div aria-label="Binomo indicator vote distribution" class="mini-fusion-track" id="miniBinomoBar"><i class="up"></i><i class="down"></i><i class="wait"></i></div>
+<div class="mini-fusion-values" id="miniBinomoVals">Waiting for screenshot / CSV…</div>
+</div>
+<div class="mini-fusion-group">
+<div class="mini-fusion-label"><strong>Binance · 10 Coins</strong><span id="miniBinanceCount">NO DATA</span></div>
+<div aria-label="Binance coin vote distribution" class="mini-fusion-track" id="miniBinanceBar"><i class="up"></i><i class="down"></i><i class="wait"></i></div>
+<div class="mini-fusion-values" id="miniBinanceVals">Waiting for Binance data…</div>
+</div>
+<div class="mini-fusion-verdict" id="miniFusionVerdict"><span class="mini-dot"></span><strong id="miniFusionWord">WAIT · NEED DATA</strong></div>
+<div class="mini-fusion-note" id="miniFusionNote">Upload Binomo screenshot for a side-by-side comparison. Not a Binomo next-candle prediction.</div>
+<div class="mini-fusion-legend"><span><i class="mini-swatch up"></i> UP</span><span><i class="mini-swatch down"></i> DOWN</span><span><i class="mini-swatch wait"></i> WAIT</span></div>
+<p class="mini-fusion-disclaimer">Research only. Binance does not track Binomo Crypto IDX. Percentages represent observed votes, not accuracy or win probability.</p>
+</aside></div><section aria-hidden="true" class="card full" hidden="" id="simpleSummary" style="display:none!important"><h2>2. UP / DOWN / WAIT — One Simple Graphic</h2><p class="muted">Binomo screenshot and Binance 10-coin live data are shown separately. Percentages describe the balance of detected signals, NOT the chance of winning.</p><div class="fusion-cards"><div class="fusion-result"><h3>📸 BINOMO SCREENSHOT</h3><div class="fusion-word" id="ssWord">UPLOAD FIRST</div><div class="fusion-bars"><div class="fusion-row"><span>🟢 UP</span><div class="fusion-track"><div class="fusion-fill up" id="ssUpBar" style="width:0%"></div></div><b id="ssUp">—</b></div><div class="fusion-row"><span>🔴 DOWN</span><div class="fusion-track"><div class="fusion-fill down" id="ssDownBar" style="width:0%"></div></div><b id="ssDown">—</b></div><div class="fusion-row"><span>⚪ WAIT</span><div class="fusion-track"><div class="fusion-fill wait" id="ssWaitBar" style="width:0%"></div></div><b id="ssWait">—</b></div></div><p class="muted" id="ssNote">Upload and analyze a screenshot above.</p></div><div class="fusion-result" hidden="" style="display:none!important"><h3>📈 BINANCE LIVE — 10 COINS</h3><div class="fusion-word" id="bnWord">NO DATA</div><div class="fusion-bars"><div class="fusion-row"><span>🟢 UP</span><div class="fusion-track"><div class="fusion-fill up" id="bnUpBar" style="width:0%"></div></div><b id="bnUp">—</b></div><div class="fusion-row"><span>🔴 DOWN</span><div class="fusion-track"><div class="fusion-fill down" id="bnDownBar" style="width:0%"></div></div><b id="bnDown">—</b></div><div class="fusion-row"><span>⚪ WAIT</span><div class="fusion-track"><div class="fusion-fill wait" id="bnWaitBar" style="width:0%"></div></div><b id="bnWait">—</b></div></div><p class="muted" id="bnNote">Press Update Graph below to fetch live market data.</p></div></div><div class="fusion-foot">These two markets are different. Do not combine their percentages into a trade win probability.</div></section><section aria-hidden="true" class="card full" hidden="" id="comparisonPanel" style="display:none!important"><h2>3. Signal Comparison</h2><div class="v4-comparison" id="comparisonWord">WAIT — need screenshot and live Binance data</div><p class="muted">Binomo screenshot and Binance spot coins are different markets. Agreement is descriptive, not a trade signal or winning probability.</p></section><section class="card full" id="indicatorAgreementPanel" style="grid-column:1/-1"><h2>3. Binomo Crypto IDX — Actual 18 Indicators</h2><div aria-live="polite" class="v49-panel" id="v49Diagnostics"><h3>🛡️ Screenshot Diagnostics · V5.1</h3><div class="v49-grid"><div class="v49-cell"><small>Screenshot Quality</small><strong id="v49Quality">NOT CHECKED</strong><span id="v49QualityDetail">Upload and estimate candles</span></div><div class="v49-cell"><small>3 / 5 / 10 Candle Trend</small><strong id="v49Trend">NO DATA</strong><span id="v49TrendDetail">Requires completed candles</span></div><div class="v49-cell"><small>Signal Freshness</small><strong id="v49Fresh">NO SIGNAL</strong><span id="v49FreshDetail">Age since screenshot analysis</span></div><div class="v49-cell"><small>Market Volatility</small><strong id="v49Vol">NO DATA</strong><span id="v49VolDetail">Relative candle movement</span></div></div><p class="v49-note">Experimental pixel-based estimates, not verified Binomo OHLC. Trend and volatility are descriptive, not next-candle probabilities. A stale result is not a live signal.</p></div><section aria-live="polite" class="v50-card" id="v50Assistant">
+<div class="v50-head"><h3>🧠 Smart Candle Assistant · V5.2</h3><span class="v50-pill" id="v50Decision">NO DATA</span></div>
+<p class="v50-muted">Binomo screenshot / authorized OHLC only. No live Binomo connection; updates after each new analysis.</p>
+<div class="v50-grid">
+<div class="v50-item"><small>Reversal Detector</small><strong id="v50Reversal">Waiting for analysis</strong></div>
+<div class="v50-item"><small>Candle Pattern</small><strong id="v50Pattern">NO DATA</strong></div>
+<div class="v50-item"><small>Support / Resistance</small><strong id="v50Zones">NO DATA</strong></div>
+<div class="v50-item"><small>Next Screenshot Timing</small><strong id="v50Timer">Waiting</strong></div>
+</div>
+<div class="v50-explain" id="v50Explanation">Select a Binomo screenshot to analyze automatically, or import authorized Binomo OHLC CSV.</div>
+<p class="v50-muted" id="v50Status">20+ completed candles required. Weak, conflicting, or stale evidence results in WAIT.</p>
+</section><details class="focused-research" id="focusedResearchTools">
+<summary>🧰 Free Chart Tools <small>patterns · trend · support/resistance · volatility</small></summary>
+<div aria-live="polite" class="focused-tools-grid">
+<div><small>3 / 5 / 10 Candle Trend</small><b id="focusTrend">NO DATA</b></div>
+<div><small>Candle Pattern</small><b id="focusPattern">NO DATA</b></div>
+<div><small>Support / Resistance</small><b id="focusZones">NO DATA</b></div>
+<div><small>Volatility</small><b id="focusVol">NO DATA</b></div>
+</div>
+<p class="focused-disclaimer">Uses the existing Binomo screenshot / authorized OHLC analysis. Pattern estimates are not TradingView, MetaTrader, broker-terminal or TrendSpider integrations. No external Binomo feed and no assured next-candle prediction.</p>
+</details><section id="combined22Panel" class="combined22" aria-label="22 Indicator Combined Analysis Graph">
+  <div class="combined22-header">
+    <div><h3>📊 22 Indicators — One Combined Graph</h3><p>Original 18 Indicators + Aroon, Donchian, Choppiness, Keltner · Binomo screenshot / OHLC only</p></div>
+    <span class="combined22-chip" id="combined22DataChip">NO DATA</span>
+  </div>
+  <div class="combined22-counts" id="combined22Counts" aria-live="polite"><span>🟢 UP 0</span><span>🔴 DOWN 0</span><span>⚪ WAIT 0</span><span>🔵 CONTEXT 0</span><span>— NO DATA 22</span></div>
+  <div class="combined22-meter" id="combined22Meter" role="img" aria-label="22 indicators overview; awaiting screenshot"><span style="width:100%;background:#40516a"></span></div>
+  <div class="combined22-grid" id="combined22Grid" aria-live="polite"><p class="combined22-loading">Upload a Binomo screenshot. All 22 indicators will appear together in one graph.</p></div>
+  <p class="combined22-note" id="combined22Note">No screenshot analyzed yet. ATR and Choppiness describe volatility / trend regime, not UP or DOWN direction. Screenshot OHLC is estimated, not verified Binomo data.</p>
+</section><details class="advanced-chart-tools" id="advancedChartAnalysis">
+<summary><span>📈 Advanced Chart Analysis</span><small>TradingView-style · Aroon · Donchian · Choppiness · Keltner</small></summary>
+<div class="adv-body">
+<p class="adv-desc">Uses only the same completed Binomo screenshot-derived candles or authorized OHLC CSV as the existing 18 indicators. No TradingView/MT4 live connection.</p>
+<div class="adv-meta" id="advSource" aria-live="polite">Upload a Binomo screenshot to see chart analysis.</div>
+<div class="adv-metrics" aria-live="polite">
+<div><small>Aroon (25)</small><b id="advAroon">NO DATA</b><span id="advAroonInfo">Needs 26 closed candles</span></div>
+<div><small>Donchian (20)</small><b id="advDonchian">NO DATA</b><span id="advDonchianInfo">Needs 21 closed candles</span></div>
+<div><small>Choppiness (14)</small><b id="advChop">NO DATA</b><span id="advChopInfo">Needs 15 closed candles</span></div>
+<div><small>Keltner (20,10)</small><b id="advKeltner">NO DATA</b><span id="advKeltnerInfo">Needs 30 closed candles</span></div>
+</div>
+<div class="adv-chart-head"><strong>Completed Candle Chart</strong><div class="adv-controls"><label><input type="checkbox" id="advDonchianToggle" checked> Donchian</label><label><input type="checkbox" id="advKeltnerToggle" checked> Keltner</label></div></div>
+<div class="adv-chart-wrap"><canvas id="advCandleCanvas" width="1000" height="390" aria-label="Candlestick chart from completed, estimated Binomo screenshot candles or authorized OHLC CSV"></canvas></div>
+<div class="adv-chart-actions"><button type="button" id="advZoomIn" aria-label="Show fewer candles">＋ Zoom</button><button type="button" id="advZoomOut" aria-label="Show more candles">－ Zoom</button><button type="button" id="advReset" aria-label="Show most recent candles">Latest</button><span id="advRange">No candle data</span></div>
+<p class="adv-foot">Screenshot candles and prices are estimates from pixels, not actual Binomo OHLC. These four indicators are new, separate research calculations; signals are not a next-candle forecast. Binance remains a separate market.</p>
+</div>
+</details><div class="ohlc-import"><strong>📸 Screenshot → Estimated 18 Indicators (Experimental)</strong><p class="muted">Upload a clear, zoomed-out Binomo chart with 20+ visible closed candles. Indicators will run automatically when you select a screenshot. Pixel-derived candles are NOT actual Binomo OHLC. The system refuses low-quality extraction.</p><button class="shot-button" hidden="" id="estimateBinomo" style="display:none!important" type="button">Estimate Indicators from Screenshot</button><p class="muted" style="font-size:12px">V5.1 · 20+ usable closed candles · running candle excluded. Image detection may find fewer candles than visually visible.</p><p class="muted" id="estimateStatus" role="status">Waiting for screenshot. CSV remains the accurate data input.</p></div><details class="focused-optional" id="csvImportDetails"><summary>Authorized Binomo OHLC CSV import (optional)</summary><div class="ohlc-import"><label class="csv-label" for="binomoCsv">📄 Select Binomo OHLC CSV</label><input accept=".csv,text/csv" id="binomoCsv" type="file"/><button class="shot-button" id="calculateBinomo" type="button">Calculate 18 Binomo Indicators</button><p class="muted" id="binomoCsvStatus" role="status">No Binomo OHLC data loaded. CSV columns: time,open,high,low,close. Minimum 20 completed candles; 50–120+ improves indicator coverage. Data must be exported from an authorized source.</p></div></details><div class="v4-quick" id="indicatorStrength"><div><small>UP indicators</small><strong id="indUp">—</strong></div><div><small>DOWN indicators</small><strong id="indDown">—</strong></div><div><small>WAIT indicators</small><strong id="indWait">—</strong></div></div><p class="muted">CSV is the preferred source. Screenshot-derived results are approximate and unverified; never use them as trade probabilities.</p><details class="combined22-originals" id="combined22Originals"><summary>Show original 18 indicator mini graphs (optional)</summary><div class="muted" id="agreement">Select a Binomo screenshot for automatic estimated analysis. Indicators without enough data will show INSUFFICIENT DATA.</div></details></section><section class="card full" hidden="" style="display:none!important"><h2>3. Overall Binance Trend</h2><div class="stat yellow" id="bias">NO DATA</div><div class="muted" id="explain">Press Update Graph to load Binance data.</div><div class="metrics" style="margin-top:14px"><div class="metric"><small>Bullish coins</small><strong class="green" id="up">—</strong></div><div class="metric"><small>Bearish coins</small><strong class="red" id="down">—</strong></div><div class="metric"><small>Neutral coins</small><strong id="neutral">—</strong></div></div><p class="muted">Direction is a technical bias, not a prediction of the next Binomo candle.</p></section><details aria-hidden="true" class="details-card v4-advanced" hidden="" style="display:none!important"><summary>Market Strength (advanced)</summary><section class="advanced card"><h2>Market Strength (advanced)</h2><div class="stat" id="strength">—</div><div class="muted">Weighted trend/momentum score: −100 to +100</div><canvas height="170" id="gauge" width="700"></canvas><div class="muted" id="fresh">Last updated: —</div></section></details><details aria-hidden="true" class="details-card v4-advanced" hidden="" style="display:none!important"><summary>Average 10-Coin Momentum</summary><section class="card full"><h2>04 / Average 10-Coin Momentum</h2><canvas height="170" id="graph" width="1000"></canvas><div class="muted">Average normalized returns across available coins, computed from completed candles only.</div></section></details><details aria-hidden="true" class="details-card v4-advanced" hidden="" style="display:none!important"><summary>Coin Details</summary><section class="card full"><h2>05 / Coin Details</h2><div style="overflow-x:auto"><table><thead><tr><th>Asset</th><th>Close</th><th>RSI(14)</th><th>EMA 9/21</th><th>MACD</th><th>Bias</th></tr></thead><tbody id="coins"><tr><td colspan="6">Press Refresh live data.</td></tr></tbody></table></div></section></details><details aria-hidden="true" class="details-card v4-advanced" hidden="" style="display:none!important"><summary>Strategy research</summary><section class="advanced card"><h2>07 / Strategy research</h2><div class="note">PDF strategy rules are <b>not imported</b> in this build. PSAR + Bollinger, Awesome Oscillator + RSI, Heikin Ashi, and Color Ribbons are reserved as future modules pending the actual PDF rules. No fabricated PDF-derived signals.</div></section></details><details aria-hidden="true" class="details-card v4-advanced" hidden="" style="display:none!important"><summary>Data &amp; risk diagnostics</summary><section class="full advanced card"><h2>08 / Data &amp; risk diagnostics</h2><div id="log">No requests yet.</div><p class="muted">Uses public Binance REST klines in your browser. Availability depends on your network, Binance regional restrictions, and browser CORS. No credentials, no automatic orders. The displayed combined signal reflects Binance spot coins, <b>not Binomo Crypto IDX</b>. No demonstrated 80% win rate or validated 3–4 minute expiry edge.</p></section></details></div><div class="foot">This is a research dashboard, not a trade execution or guaranteed profit system. Existing Quantum X screenshot dashboard remains separate and unchanged.</div></main><script>(()=>{'use strict';
+const $=id=>document.getElementById(id);let url=null,lastAnalysis=0,selected=null;
+const file=$('shotFile'), preview=$('shotPreview'), message=$('shotMessage'), result=$('shotResult');
+const put=(id,text)=>{if($(id))$(id).textContent=text};
+const colors={UP:'#10b981',DOWN:'#fb6178',WAIT:'#cbd5e1'};
+function render(prefix,counts,note){const sum=counts.reduce((a,b)=>a+b,0),p=counts.map(x=>sum?Math.round(100*x/sum):0);const names=['Up','Down','Wait'];names.forEach((name,i)=>{put(prefix+name,p[i]+'%');const bar=$(prefix+name+'Bar');if(bar)bar.style.width=p[i]+'%'});const m=Math.max(...counts),word=!sum?'NO DATA':counts[2]===m?'WAIT':counts[0]===counts[1]?'WAIT':counts[0]===m?'UP':'DOWN';put(prefix+'Word',word);$(prefix+'Word').style.color=colors[word]||'#cbd5e1';put(prefix+'Note',note);return {word,p};}
+function binance(){const vals=['up','down','neutral'].map(id=>Number($(id)?.textContent));const valid=vals.every(Number.isFinite)&&vals.reduce((a,b)=>a+b,0)>0;if(valid)render('bn',vals,`Based on ${vals.reduce((a,b)=>a+b,0)} Binance coins; NOT win probability.`);updateComparison();}
+['up','down','neutral'].forEach(id=>new MutationObserver(binance).observe($(id),{childList:true,subtree:true}));
+function setWarn(msg){put('qualityWarning',msg);$('qualityWarning').style.color='#fbbf24';}
+document.getElementById('pasteShot')?.addEventListener('click',async()=>{const status=document.getElementById('pasteShotStatus');try{if(!navigator.clipboard?.read)throw Error('Clipboard image access is not supported here.');const items=await navigator.clipboard.read();let blob=null;for(const item of items){const type=item.types.find(t=>t.startsWith('image/'));if(type){blob=await item.getType(type);break;}}if(!blob)throw Error('No image in clipboard.');selected=new File([blob],'binomo-pasted.png',{type:blob.type||'image/png'});if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(selected);preview.src=url;preview.style.display='block';message.textContent='Pasted screenshot selected. Analyzing automatically…';result.style.display='none';status.textContent='Image pasted successfully.';}catch(e){status.textContent='Paste unavailable: '+e.message+' Use the screenshot picker above.';}});
+file.addEventListener('change',()=>{selected=file.files?.[0];if(!selected)return;if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(selected);preview.src=url;preview.style.display='block';message.textContent='Screenshot selected. Analyzing automatically…';result.style.display='none';put('minuteFresh','Not analyzed');});
+function classify(r,g,b){const hi=Math.max(r,g,b),lo=Math.min(r,g,b);if(hi-lo<36)return 0;if(g>72&&g>r*1.3&&g>b*1.12)return 1;if(r>90&&r>g*1.34&&r>b*1.1)return -1;return 0;}
+function detect(img){const canvas=document.createElement('canvas'),scale=Math.min(1,960/img.width);canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);const {width:w,height:h}=canvas,pix=ctx.getImageData(0,0,w,h).data;
+// Conservative chart region; UI overlays and indicator panes can still contaminate results.
+const x0=Math.floor(w*.12),x1=Math.floor(w*.94),y0=Math.floor(h*.15),y1=Math.floor(h*.68),stride=2;const col=[];
+for(let x=x0;x<x1;x+=stride){let pos=0,neg=0;for(let y=y0;y<y1;y+=3){const i=(y*w+x)*4,v=classify(pix[i],pix[i+1],pix[i+2]);if(v===1)pos++;else if(v===-1)neg++;}col.push(pos>neg*1.5&&pos>=4?1:neg>pos*1.5&&neg>=4?-1:0);}
+const groups=[];for(let i=0;i<col.length;i++){const v=col[i];if(!v)continue;const last=groups[groups.length-1];if(last&&last.v===v&&i-last.end<=2){last.end=i;last.n++}else groups.push({v,start:i,end:i,n:1});}
+const filtered=groups.filter(x=>x.n>=2); // not verified candle bodies
+// Discard rightmost detected color group conservatively as potentially running candle.
+const closed=filtered.slice(0,-1).slice(-10);const up=closed.filter(x=>x.v===1).length,down=closed.filter(x=>x.v===-1).length;return {up,down,total:closed.length,discarded:filtered.length>0,all:filtered.length};}
+$('shotAnalyze').addEventListener('click',()=>{if(!selected){message.textContent='Select a screenshot first.';return;}const img=new Image();img.onload=()=>{try{const d=detect(img),weak=d.total<6;const count=weak?[0,0,1]:[d.up,d.down,Math.max(0,10-d.total)];const note=`${d.total} approximate color groups after excluding rightmost group. Not verified OHLC candles.`;const r=render('ss',count,note);let word=weak?'WAIT':Math.abs(d.up-d.down)<3?'WAIT':d.up>d.down?'UP':'DOWN';if(word!==r.word){put('ssWord',word);$('ssWord').style.color=colors[word];}put('shotDirection',word);put('shotStats',note);result.style.display='block';put('minuteDirection',word);$('minuteDirection').style.color=colors[word];put('minuteUp',weak?'—':Math.round(d.up/d.total*100)+'%');put('minuteDown',weak?'—':Math.round(d.down/d.total*100)+'%');put('minuteWait',weak?'100%':'0%');put('minuteNote','1-minute visual bias only. The timer tracks screenshot age, not trade expiry.');put('detectedCount',String(d.total));put('closedCandles',String(d.total));put('qualityState',weak?'LOW / WAIT':'EXPERIMENTAL');setWarn(weak?'WAIT: Too few color groups for a useful visual reading. Try a clear, tightly cropped chart.':'Visual groups may include overlays/indicators; colors alone cannot validate candle patterns or 18 indicators.');message.textContent='Visual analysis finished. 18 indicators: NO DATA (Binomo OHLC not available).';lastAnalysis=Date.now();tick();updateComparison();}catch(e){message.textContent='Could not analyze image: '+e.message;}};img.onerror=()=>message.textContent='Could not load image. Use JPG or PNG.';img.src=url;});
+function tick(){const elapsed=lastAnalysis?Math.floor((Date.now()-lastAnalysis)/1000):0;const left=60-elapsed;put('minuteFresh',!lastAnalysis?'Upload first':left>0?`Age ${elapsed}s · fresh ${left}s`:'STALE · upload again');put('countdown',String(60-(Math.floor(Date.now()/1000)%60)).padStart(2,'0')+'s');if(lastAnalysis&&left<=0){put('minuteDirection','WAIT');$('minuteDirection').style.color=colors.WAIT;put('ssWord','WAIT');$('ssWord').style.color=colors.WAIT;setWarn('WAIT: Screenshot older than 60 seconds. Upload a new chart.');}updateComparison();}
+function updateComparison(){const b=$('bnWord')?.textContent.trim(),s=$('ssWord')?.textContent.trim();let text='WAIT — need screenshot and live Binance data';if(lastAnalysis&&Date.now()-lastAnalysis<60000&&['UP','DOWN'].includes(s)&&['UP','DOWN'].includes(b))text=s===b?'SAME DIRECTION — different markets':'CONFLICT — different markets';else if(lastAnalysis&&Date.now()-lastAnalysis<60000&&['UP','DOWN','WAIT'].includes(s)&&['UP','DOWN','WAIT','MIXED'].includes(b))text='WAIT — no clear agreement';put('comparisonWord',text);}
+setInterval(tick,1000);tick();})();</script><script>
+/* Fusion V3.1 — real OHLC indicator computations, educational use only. */
+(()=>{'use strict';
+const coins=['BTC','ETH','SOL','BNB','XRP','ADA','DOGE','LINK','AVAX','LTC'];
+const names=['EMA','MACD','RSI','Supertrend','ADX + DI','Bollinger Bands','Stochastic RSI','Parabolic SAR','CCI','Williams %R','Momentum','Awesome Oscillator','Fractals','Moving Average','Fractal Chaos Bands','Alligator','ATR','Stochastic'];
+const colors=['#16c79a','#ff5874','#a7b6ce'];
+const el=id=>document.getElementById(id),mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
+const last=a=>a[a.length-1];
+const sma=(a,n)=>a.map((_,i)=>i>=n-1?mean(a.slice(i-n+1,i+1)):NaN);
+function ema(a,n){let prev=NaN;return a.map(x=>{if(!Number.isFinite(x))return prev;if(!Number.isFinite(prev))prev=x;else prev=prev+(x-prev)*2/(n+1);return prev;});}
+const diff=(a,b)=>a.map((x,i)=>x-b[i]);
+function rsi(c,n=14){const d=c.slice(1).map((v,i)=>v-c[i]);let g=0,l=0;const out=Array(c.length).fill(NaN);if(d.length<n)return out;for(let i=0;i<n;i++){g+=Math.max(d[i],0);l+=Math.max(-d[i],0)}g/=n;l/=n;for(let i=n;i<c.length;i++){if(i>n){g=(g*(n-1)+Math.max(d[i-1],0))/n;l=(l*(n-1)+Math.max(-d[i-1],0))/n;}out[i]=l===0?(g===0?50:100):100-100/(1+g/l);}return out;}
+function atr(h,l,c,n=14){const tr=c.map((v,i)=>i?Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])):h[i]-l[i]);return ema(tr,n);}
+function adx(h,l,c,n=14){const plus=[0],minus=[0];for(let i=1;i<c.length;i++){const up=h[i]-h[i-1],dn=l[i-1]-l[i];plus.push(up>dn&&up>0?up:0);minus.push(dn>up&&dn>0?dn:0);}const a=atr(h,l,c,n),p=ema(plus,n).map((x,i)=>100*x/(a[i]||1)),m=ema(minus,n).map((x,i)=>100*x/(a[i]||1));const dx=p.map((x,i)=>100*Math.abs(x-m[i])/(x+m[i]||1));return {p,m,adx:ema(dx,n)};}
+const decide=(x,y,band=0)=>!Number.isFinite(x)||!Number.isFinite(y)?0:x>y+band?1:x<y-band?-1:0;
+function classify(rows){const h=rows.map(x=>x[2]),l=rows.map(x=>x[3]),c=rows.map(x=>x[4]),n=c.length;if(n<20)throw Error('Need at least 20 completed candles');const e9=ema(c,9),e21=ema(c,21),e12=ema(c,12),e26=ema(c,26),mac=diff(e12,e26),signal=ema(mac,9),r=rsi(c),a=atr(h,l,c),di=adx(h,l,c),s20=sma(c,20),s50=sma(c,50),mid=h.map((v,i)=>(v+l[i])/2),ao=diff(sma(mid,5),sma(mid,34));const i=n-1,price=c[i],vol=a[i]||price*.001;let result={};
+result['EMA']=decide(e9[i],e21[i]);result['Moving Average']=decide(s20[i],s50[i]);result['MACD']=decide(mac[i],signal[i],Math.abs(mac[i])*.02);result['RSI']=r[i]>55?1:r[i]<45?-1:0;
+result['Momentum']=decide(price,c[i-10],vol*.12);result['Awesome Oscillator']=decide(ao[i],0,vol*.03);
+result['ADX + DI']=di.adx[i]<20?0:decide(di.p[i],di.m[i],2);
+const sd=Math.sqrt(mean(c.slice(i-19,i+1).map(x=>(x-s20[i])**2)));result['Bollinger Bands']=price>s20[i]+sd*.25?1:price<s20[i]-sd*.25?-1:0;
+const typical=c.map((x,j)=>(h[j]+l[j]+x)/3),tm=sma(typical,20),dev=mean(typical.slice(i-19,i+1).map(x=>Math.abs(x-tm[i])));const cci=(typical[i]-tm[i])/(.015*(dev||1));result['CCI']=cci>100?1:cci< -100?-1:0;
+const hi14=Math.max(...h.slice(i-13,i+1)),lo14=Math.min(...l.slice(i-13,i+1)),wr=-100*(hi14-price)/(hi14-lo14||1);result['Williams %R']=wr> -40?1:wr< -60?-1:0;
+const stoch=(price-lo14)/(hi14-lo14||1)*100;result['Stochastic']=stoch>60?1:stoch<40?-1:0;
+const rv=r.slice(i-13,i+1),rmin=Math.min(...rv),rmax=Math.max(...rv),sr=(r[i]-rmin)/(rmax-rmin||1)*100;result['Stochastic RSI']=sr>60?1:sr<40?-1:0;
+// Wilder-style directional supertrend approximation from ATR bands and prior close.
+let upper=0,lower=0,trend=1;for(let j=1;j<n;j++){const basic=(h[j]+l[j])/2,up=basic+3*a[j],dn=basic-3*a[j];if(j===1){upper=up;lower=dn;continue;}const prevUpper=upper,prevLower=lower;upper=up<prevUpper||c[j-1]>prevUpper?up:prevUpper;lower=dn>prevLower||c[j-1]<prevLower?dn:prevLower;if(c[j]>prevUpper)trend=1;else if(c[j]<prevLower)trend=-1;}result['Supertrend']=trend;
+// PSAR with acceleration and extreme point.
+let bull=c[1]>=c[0],sar=bull?l[0]:h[0],ep=bull?h[0]:l[0],af=.02;for(let j=2;j<n;j++){sar+=af*(ep-sar);sar=bull?Math.min(sar,l[j-1],l[j-2]):Math.max(sar,h[j-1],h[j-2]);if((bull&&l[j]<sar)||(!bull&&h[j]>sar)){bull=!bull;sar=ep;ep=bull?h[j]:l[j];af=.02;}else if((bull&&h[j]>ep)||(!bull&&l[j]<ep)){ep=bull?h[j]:l[j];af=Math.min(.2,af+.02);}}result['Parabolic SAR']=bull?1:-1;
+// Confirmed 5-bar fractal pivots only, excluding last two candles.
+let fh=NaN,fl=NaN;for(let j=2;j<n-2;j++){if(h[j]>h[j-1]&&h[j]>h[j-2]&&h[j]>h[j+1]&&h[j]>h[j+2])fh=h[j];if(l[j]<l[j-1]&&l[j]<l[j-2]&&l[j]<l[j+1]&&l[j]<l[j+2])fl=l[j];}result['Fractals']=Number.isFinite(fh)&&Number.isFinite(fl)?price>fh?1:price<fl?-1:0:0;
+result['Fractal Chaos Bands']=result['Fractals'];
+// Alligator uses smoothed median price; latest non-forward-shifted values for transparent classification.
+const jaw=ema(mid,13),teeth=ema(mid,8),lips=ema(mid,5);result['Alligator']=lips[i]>teeth[i]&&teeth[i]>jaw[i]?1:lips[i]<teeth[i]&&teeth[i]<jaw[i]?-1:0;
+// ATR measures volatility, not direction; intentionally WAIT.
+result['ATR']=0;
+// Minimum history by indicator. Do not equate insufficient data with a neutral WAIT signal.
+const minHistory={'EMA':21,'MACD':35,'RSI':15,'Supertrend':28,'ADX + DI':28,'Bollinger Bands':20,'Stochastic RSI':29,'Parabolic SAR':20,'CCI':20,'Williams %R':14,'Momentum':11,'Awesome Oscillator':34,'Fractals':20,'Moving Average':50,'Fractal Chaos Bands':20,'Alligator':20,'ATR':14,'Stochastic':14};
+for(const key of names){if(n<minHistory[key]||![-1,0,1].includes(result[key]))result[key]=null;}
+return {result,closes:c,rows};}
+function draw(groups,available){const root=el('agreement');if(!root)return;root.innerHTML='';for(const name of names){const votes=groups.map(g=>g.result[name]);const counts=[votes.filter(v=>v===1).length,votes.filter(v=>v===-1).length,votes.filter(v=>v===0).length],den=votes.length;const p=counts.map(v=>den?Math.round(v/den*100):0);const section=document.createElement('div');section.className='indicator-chart-group';const heading=document.createElement('div');heading.className='indicator-chart-heading';const label=document.createElement('strong');label.textContent=name;heading.append(label);const tag=document.createElement('span');tag.textContent=den?['UP','DOWN','WAIT'][counts.indexOf(Math.max(...counts))]:'NO DATA';tag.style.color=colors[counts.indexOf(Math.max(...counts))];heading.append(tag);section.append(heading);const plot=document.createElement('div');plot.className='indicator-plot';for(let k=0;k<3;k++){const col=document.createElement('div');col.className='indicator-column';const num=document.createElement('b');num.textContent=den?p[k]+'%':'—';const bar=document.createElement('div');bar.className='indicator-column-bar';bar.style.cssText=`height:${den?p[k]:0}%;background:${colors[k]};`;const cap=document.createElement('span');cap.textContent=['UP','DOWN','WAIT'][k];col.append(num,bar,cap);plot.append(col);}section.append(plot);root.append(section);}el('indicatorDataInfo').textContent=`${available}/10 coins with completed Binance candles. ATR measures volatility, so its directional classification is WAIT. Fractals and Fractal Chaos Bands share pivot logic. Percentages are coin counts, NOT predicted accuracy.`;}
+
+function parseBinomoCsv(text){
+ const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/).filter(x=>x.trim());if(lines.length<21)throw Error('Need at least 20 completed OHLC candles.');
+ const split=line=>{let out=[],cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(c===','&&!q){out.push(cur.trim());cur='';}else cur+=c;}out.push(cur.trim());return out;};
+ const headers=split(lines[0]).map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,''));const cols=['time','open','high','low','close'];let ix=cols.map(c=>headers.indexOf(c));if(ix[0]<0)ix[0]=headers.indexOf('timestamp');if(ix[0]<0)ix[0]=headers.indexOf('datetime');if(ix[0]<0)ix[0]=headers.indexOf('date');if(ix.some(v=>v<0))throw Error('CSV header must contain time,open,high,low,close (or timestamp instead of time).');
+ const rows=[];for(const line of lines.slice(1)){const a=split(line);if(!line.trim())continue;const nums=ix.slice(1).map(k=>Number(a[k]));let t=Number(a[ix[0]]);if(!Number.isFinite(t)||!a[ix[0]].trim())t=Date.parse(a[ix[0]]);else if(t<1e11)t*=1000;if(!Number.isFinite(t)||nums.some(v=>!Number.isFinite(v))||nums.some(v=>v<=0))throw Error('Invalid OHLC/time in CSV row '+(rows.length+2));const [o,h,l,c]=nums;if(h<Math.max(o,c,l)||l>Math.min(o,c,h))throw Error('Invalid high/low in row '+(rows.length+2));rows.push([t,o,h,l,c]);}
+ if(rows.length<20)throw Error('At least 20 completed candles required.');for(let i=1;i<rows.length;i++)if(rows[i][0]<=rows[i-1][0])throw Error('Candle timestamps must be strictly increasing, oldest first.');
+ const tf=rows.length>1?rows[rows.length-1][0]-rows[rows.length-2][0]:60000;if(tf<1000||tf>86400000)throw Error('Unexpected candle interval. Check timestamps.');
+ const now=Date.now();if(rows.some(r=>r[0]>now+60000))throw Error('Future timestamps detected. Check timezone.');
+ const completed=rows.filter(r=>r[0]+tf<=now);if(completed.length<20)throw Error('Not enough completed candles after excluding the running candle.');return {rows:completed,excluded:rows.length-completed.length,tf};
+}
+function renderBinomoIndicators(result,meta){
+ const root=el('agreement');if(!root)return;root.textContent='';let up=0,down=0,wait=0,insufficient=0;
+ for(const name of names){const value=result[name];if(value===1)up++;else if(value===-1)down++;else if(value===0)wait++;else insufficient++;
+  const card=document.createElement('div');card.className='indicator-chart-group';const head=document.createElement('div');head.className='indicator-chart-heading';const title=document.createElement('strong');title.textContent=name;const state=document.createElement('span');state.textContent=value===null?'INSUFFICIENT DATA':value===1?'UP':value===-1?'DOWN':'WAIT';state.style.color=value===1?colors[0]:value===-1?colors[1]:colors[2];head.append(title,state);card.append(head);
+  const plot=document.createElement('div');plot.className='indicator-plot';[1,-1,0].forEach((v,i)=>{const col=document.createElement('div');col.className='indicator-column';const num=document.createElement('b');num.textContent=value===null?'—':value===v?'1':'0';const bar=document.createElement('div');bar.className='indicator-column-bar';bar.style.height=(value===v?'100':'0')+'%';bar.style.background=colors[i];const cap=document.createElement('span');cap.textContent=['UP','DOWN','WAIT'][i];col.append(num,bar,cap);plot.append(col);});card.append(plot);root.append(card);
+ }
+ for(const [id,v] of [['indUp',up],['indDown',down],['indWait',wait]])if(el(id))el(id).textContent=v+'/18';
+ const info=el('binomoCsvStatus');if(info)info.textContent=`Binomo OHLC data analyzed: ${meta.rows.length} completed candles · ${meta.excluded} running/future candle(s) excluded · ${Math.round(meta.tf/60000)}m interval · ${up} UP, ${down} DOWN, ${wait} WAIT, ${insufficient} INSUFFICIENT DATA. ATR is volatility-only; Fractals and Fractal Chaos Bands share pivot logic. These are approximate implementations, not guaranteed Binomo platform indicator values.`;
+}
+// EXPERIMENTAL screenshot candle extraction. Pixel-relative OHLC only; no price-scale calibration.
+function extractScreenshotCandles(img){
+ // Screenshot-only pixel extraction. This never claims to recover real Binomo OHLC.
+ // Crop presets and adaptive scanning improve resilience to different iPhone screenshots.
+ const canvas=document.createElement('canvas');const scale=Math.min(1,1100/img.naturalWidth);
+ canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+ const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
+ const pix=ctx.getImageData(0,0,w,h).data;
+ const all={upper:[.07,.91,.07,.48],standard:[.055,.925,.08,.67],middle:[.06,.92,.21,.75],tight:[.10,.89,.14,.62],full:[.035,.95,.06,.82]};
+ const mode=document.getElementById('ncCrop')?.value||'auto';
+ const regions=mode==='auto'?['standard','upper','middle','tight']:all[mode]?[mode]:['standard'];
+ const attempts=[];
+ function scan(preset){
+  const [xA,xB,yA,yB]=all[preset],left=Math.round(w*xA),right=Math.round(w*xB),top=Math.round(h*yA),bottom=Math.round(h*yB);
+  const columns=[];
+  for(let x=left;x<right;x++){
+   let green=[],red=[];
+   for(let y=top;y<bottom;y+=2){const k=(y*w+x)*4,r=pix[k],g=pix[k+1],b=pix[k+2];
+    if(g>73&&g>r*1.24&&g>b*1.08&&r<195)green.push(y);
+    else if(r>97&&r>g*1.27&&r>b*1.1&&g<185)red.push(y);
+   }
+   const z=green.length>red.length*1.20?1:red.length>green.length*1.20?-1:0;
+   const ys=z===1?green:z===-1?red:[];
+   columns.push({x,sign:z,count:ys.length,ys});
+  }
+  const runs=[],one=[];let run=[];
+  function flush(){if(run.length){runs.push(run);run=[];}}
+  for(const c of columns){if(c.sign&&c.count>=2){if(run.length&&c.sign!==run[run.length-1].sign)flush();run.push(c);}else flush();}flush();
+  const candidateWidths=runs.map(r=>r.length).filter(n=>n>=2&&n<=27).sort((a,b)=>a-b);
+  const median=candidateWidths.length?candidateWidths[Math.floor(candidateWidths.length/2)]:8;
+  const bars=[];let rejected=0;
+  const maxWidth=Math.max(14,Math.min(33,median*2.5));
+  for(const run of runs){
+   if(run.length<2||run.length>maxWidth){rejected++;continue;}
+   const allY=run.flatMap(c=>c.ys);if(!allY.length){rejected++;continue;}
+   const hi=Math.min(...allY),lo=Math.max(...allY);
+   if(lo-hi<3){rejected++;continue;}
+   const sorted=run.slice().sort((a,b)=>b.count-a.count), core=sorted.slice(0,Math.min(3,sorted.length));
+   const body=core[0],openY=run[0].sign===1?Math.max(...body.ys):Math.min(...body.ys),closeY=run[0].sign===1?Math.min(...body.ys):Math.max(...body.ys);
+   const base=h+100;
+   const o=base-openY,high=base-hi,low=base-lo,c=base-closeY;
+   if(![o,high,low,c].every(Number.isFinite)||low>Math.min(o,c)||high<Math.max(o,c)){rejected++;continue;}
+   bars.push({x:run.reduce((t,v)=>t+v.x,0)/run.length,row:[0,o,high,low,c]});
+  }
+  bars.sort((a,b)=>a.x-b.x);
+  // Discard rightmost detected candle. It may be the running candle.
+  if(bars.length)bars.pop();
+  const quality=bars.length-0.7*rejected-(median>22?6:0);
+  return {preset,detected:bars.length,rejected,median,groups:runs.length,quality,rows:bars.map((x,i)=>[i*60000,...x.row.slice(1)])};
+ }
+ for(const preset of regions){attempts.push(scan(preset));}
+ attempts.sort((a,b)=>b.quality-a.quality);const best=attempts[0];
+ if(!best||best.detected<20){const found=attempts.map(v=>v.preset+': '+v.detected).join(' / ');
+  throw Error('Could not read 20 closed candles (crop scan: '+found+'). Crop the chart in Photos, keep 25–40 clear candles, or choose a different Chart Area preset.');}
+ if(best.rejected>Math.max(10,best.groups*.55))throw Error('Too many overlapping/ambiguous candle colours ('+best.rejected+'). Crop away indicators or use verified OHLC CSV.');
+ return {rows:best.rows,detected:best.detected,rejected:best.rejected,preset:best.preset,medianWidth:best.median};
+}
+// V4.9: descriptive diagnostics on the same pixel-derived closed candles; no new data feed.
+let v49AnalyzedAt=0;
+const v49Put=(id,value,kind)=>{const node=el(id);if(!node)return;node.textContent=value;if(kind){node.classList.remove('v49-ok','v49-warn','v49-bad');node.classList.add('v49-'+kind);}};
+function v49Freshness(){if(!v49AnalyzedAt){v49Put('v49Fresh','NO SIGNAL');return;}const age=Math.max(0,Math.floor((Date.now()-v49AnalyzedAt)/1000));v49Put('v49Fresh',age>=60?'STALE':age>=40?'AGING':'FRESH',age>=60?'bad':age>=40?'warn':'ok');v49Put('v49FreshDetail',age+'s since estimate · '+(age>=60?'Upload a new screenshot':(60-age)+'s until stale'));}
+setInterval(v49Freshness,1000);
+function v49Diagnostics(data){
+ const rows=data.rows,n=rows.length,close=rows.map(r=>r[4]);
+ // These metrics measure extraction consistency, not the truth of recovered OHLC.
+ const rejectedRate=data.rejected/Math.max(1,data.rejected+data.detected);
+ const quality=n>=50&&rejectedRate<.12?'BETTER SAMPLE':n>=30&&rejectedRate<.25?'FAIR':'LOW CONFIDENCE';
+ v49Put('v49Quality',quality,quality==='LOW CONFIDENCE'?'warn':'ok');
+ v49Put('v49QualityDetail',n+' estimated closed candles · '+data.rejected+' ambiguous groups · '+Math.round(rejectedRate*100)+'% rejected');
+ const vote=k=>{if(n<k+1)return null;const a=close[n-1]-close[n-1-k];const scale=Math.max(1e-9,Math.abs(close[n-1])*0.0005);return Math.abs(a)<scale?'WAIT':a>0?'UP':'DOWN';};
+ const votes=[3,5,10].map(vote);const valid=votes.filter(Boolean),allAgree=valid.length===3&&valid.every(v=>v===valid[0]);
+ const trend=allAgree?valid[0]+' CONFIRMED':'MIXED / WAIT';
+ v49Put('v49Trend',trend,allAgree?(valid[0]==='UP'?'ok':valid[0]==='DOWN'?'bad':'warn'):'warn');
+ v49Put('v49TrendDetail','3: '+(votes[0]||'N/A')+' · 5: '+(votes[1]||'N/A')+' · 10: '+(votes[2]||'N/A'));
+ // Range normalized by median candle range to avoid pixel-relative price-offset artifacts.
+ const ranges=rows.slice(-Math.min(14,n)).map(r=>Math.max(0,r[2]-r[3]));
+ const baseline=rows.slice(0,-Math.min(14,n)).map(r=>Math.max(0,r[2]-r[3])).filter(v=>v>0).sort((a,b)=>a-b);
+ const recent=ranges.reduce((a,b)=>a+b,0)/Math.max(1,ranges.length);
+ const reference=baseline.length?baseline[Math.floor(baseline.length/2)]:NaN;
+ const ratio=Number.isFinite(reference)&&reference>0?recent/reference:NaN;
+ const vol=!Number.isFinite(ratio)?'INSUFFICIENT BASELINE':ratio>=1.7?'HIGH VOLATILITY':ratio<=.65?'LOW VOLATILITY':'NORMAL RANGE';
+ v49Put('v49Vol',vol,vol==='HIGH VOLATILITY'?'bad':vol==='NORMAL RANGE'?'ok':'warn');
+ v49Put('v49VolDetail',Number.isFinite(ratio)?'Recent 14 candle ranges / prior median: '+ratio.toFixed(2)+'×':'Need more historical candles to compare ranges');
+ v49AnalyzedAt=Date.now();v49Freshness();
+}
+
+// V5.0 Smart Candle Assistant: deterministic, explainable analysis of last supplied data.
+// No autonomous market observation, no trained AI model, and no win-probability claim.
+let v50Last=null,v50Previous=null;
+function v50Text(id,value,kind){const e=el(id);if(!e)return;e.textContent=value;e.classList.remove('v50-up','v50-down','v50-wait');if(kind)e.classList.add('v50-'+kind);}
+function v50Timer(){
+ const seconds=60-new Date().getSeconds();
+ v50Text('v50Timer',seconds+'s to next minute boundary');
+ if(!v50Last)return;
+ const age=Math.floor((Date.now()-v50Last.at)/1000);
+ if(age>=60){v50Text('v50Decision','WAIT · STALE','wait');v50Text('v50Status','Previous screenshot analysis is '+age+'s old. Upload a NEW screenshot after the next candle closes. No live market tracking.');}
+ else if(age>=40){v50Text('v50Status','Screenshot age '+age+'s · aging. Next minute boundary in '+seconds+'s; take a fresh screenshot after candle close.');}
+}
+setInterval(v50Timer,1000);v50Timer();
+function v50Analyze(rows,result,source,quality){
+ const n=rows.length,now=Date.now(),lastRow=rows[n-1],close=lastRow[4],open=lastRow[1],high=lastRow[2],low=lastRow[3];
+ const valid=Object.values(result).filter(v=>v===1||v===-1||v===0);
+ const up=valid.filter(v=>v===1).length,down=valid.filter(v=>v===-1).length;
+ const directional=up+down,margin=Math.abs(up-down),vote=up>down?'UP':down>up?'DOWN':'WAIT';
+ const ranges=rows.slice(-Math.min(12,n)).map(r=>Math.max(.00001,r[2]-r[3]));
+ const median=a=>{const v=[...a].sort((x,y)=>x-y);return v[Math.floor(v.length/2)]||0;};
+ const typical=median(ranges),body=Math.abs(close-open),full=Math.max(.00001,high-low),upper=high-Math.max(open,close),lower=Math.min(open,close)-low;
+ let pattern='No strong pattern';
+ if(body/full<=.12)pattern='Doji / indecision';
+ else if(lower>=body*2&&upper<=body*.65)pattern='Hammer-shaped candle';
+ else if(upper>=body*2&&lower<=body*.65)pattern='Shooting-star-shaped candle';
+ if(n>=2){const p=rows[n-2];if(close>open&&p[4]<p[1]&&open<=p[4]&&close>=p[1])pattern='Bullish engulfing';else if(close<open&&p[4]>p[1]&&open>=p[4]&&close<=p[1])pattern='Bearish engulfing';}
+ // Simple local swing zones from completed candles only; values may be pixel-relative.
+ const swingsH=[],swingsL=[];for(let i=2;i<n-2;i++){
+  if(rows[i][2]>rows[i-1][2]&&rows[i][2]>rows[i+1][2]&&rows[i][2]>rows[i-2][2]&&rows[i][2]>rows[i+2][2])swingsH.push(rows[i][2]);
+  if(rows[i][3]<rows[i-1][3]&&rows[i][3]<rows[i+1][3]&&rows[i][3]<rows[i-2][3]&&rows[i][3]<rows[i+2][3])swingsL.push(rows[i][3]);
+ }
+ const support=swingsL.filter(v=>v<=close).sort((a,b)=>b-a)[0],resistance=swingsH.filter(v=>v>=close).sort((a,b)=>a-b)[0];
+ const nearSupport=Number.isFinite(support)&&close-support<=typical*.75,nearResistance=Number.isFinite(resistance)&&resistance-close<=typical*.75;
+ const format=x=>Number.isFinite(x)?source==='screenshot'?'relative '+x.toFixed(1):x.toFixed(Math.abs(x)>=100?2:5):'N/A';
+ const zones='S: '+format(support)+' · R: '+format(resistance);
+ const volatility=typical>0&&(high-low)>typical*2.5;
+ const conflict=directional<4||margin<Math.max(2,Math.ceil(directional*.22));
+ const weak=quality==='LOW CONFIDENCE';
+ const caution=nearResistance&&vote==='UP'||nearSupport&&vote==='DOWN';
+ const patternConflict=(vote==='UP'&&(pattern==='Bearish engulfing'||pattern==='Shooting-star-shaped candle'))||(vote==='DOWN'&&(pattern==='Bullish engulfing'||pattern==='Hammer-shaped candle'));
+ const wait=weak||conflict||volatility||caution||patternConflict;
+ const decision=wait?'WAIT':vote;
+ let reversal='No prior screenshot to compare';
+ if(v50Last){const prev=v50Last;
+  if(prev.decision==='UP'&&vote==='DOWN'||prev.decision==='DOWN'&&vote==='UP')reversal='Direction flipped '+prev.decision+' → '+vote;
+  else if(prev.decision!=='WAIT'&&decision==='WAIT')reversal='Previous '+prev.decision+' bias weakened → WAIT';
+  else reversal='No confirmed direction flip';
+ }
+ v50Previous=v50Last;v50Last={at:now,decision,rawVote:vote,source};
+ v50Text('v50Decision',decision,decision.toLowerCase());v50Text('v50Reversal',reversal,reversal.includes('flipped')?'wait':null);
+ v50Text('v50Pattern',pattern);v50Text('v50Zones',zones);
+ const reasons=[];
+ reasons.push(up+' UP / '+down+' DOWN among '+directional+' directional indicators');
+ if(weak)reasons.push('screenshot extraction quality is low');
+ if(conflict)reasons.push('indicator disagreement / weak majority');
+ if(volatility)reasons.push('unusually large latest candle range');
+ if(caution)reasons.push('near an estimated swing zone');
+ if(patternConflict)reasons.push('latest candle shape conflicts with indicator bias');
+ const detail=(wait?'WAIT recommended for demo analysis. ':'Directional bias: '+decision+' (not a next-candle guarantee). ')+reasons.join('; ')+'. '+(source==='screenshot'?'Prices are pixel-relative estimates, NOT actual Binomo OHLC. ':'Uses imported OHLC; verify its origin and completion timestamps. ')+ 'This cannot detect a reversal until NEW data is uploaded.';
+ v50Text('v50Explanation',detail);
+ v50Text('v50Status','Analysis captured now · next screenshot after current 1-minute candle closes. Timer follows phone clock, not verified Binomo candle timing.');v50Timer();
+}
+function v50Reset(message){v50Last=null;v50Text('v50Decision','NO DATA','wait');v50Text('v50Reversal','Waiting for valid data');v50Text('v50Pattern','NO DATA');v50Text('v50Zones','NO DATA');v50Text('v50Explanation',message||'Upload a valid screenshot or CSV.');v50Text('v50Status','No usable analysis.');}
+
+function estimateScreenshot(){
+ const status=el('estimateStatus'),preview=el('shotPreview');
+ if(!preview?.src||!preview.complete||!preview.naturalWidth){if(status)status.textContent='Upload and analyze a Binomo screenshot first.';return;}
+ try{
+  const data=extractScreenshotCandles(preview),result=classify(data.rows).result;
+  renderBinomoIndicators(result,{rows:data.rows,excluded:1,tf:60000});v49Diagnostics(data);v50Analyze(data.rows,result,'screenshot',el('v49Quality')?.textContent||'LOW CONFIDENCE');window.dispatchEvent(new CustomEvent('fusion:binomo-candles',{detail:{rows:data.rows,source:'screenshot',at:Date.now(),detected:data.detected,rejected:data.rejected,preset:data.preset,quality:(data.detected>=35&&data.rejected<=Math.max(5,data.detected*.18)?'FAIR':'LOW CONFIDENCE')}}));
+  if(status)status.textContent='EXPERIMENTAL: '+data.detected+' pixel-derived closed candles; '+data.rejected+' ambiguous groups ignored. These are NOT verified OHLC or official Binomo indicator readings.';
+  if(el('binomoCsvStatus'))el('binomoCsvStatus').textContent='Screenshot-only ESTIMATE (unverified pixel-relative OHLC). For accurate indicators, import authorized Binomo OHLC CSV.';
+ }catch(e){for(const id of ['indUp','indDown','indWait'])if(el(id))el(id).textContent='—';if(el('agreement'))el('agreement').textContent='NO DATA — screenshot candle extraction failed. No indicator votes were calculated.';v50Reset('Screenshot extraction failed: '+e.message);v49AnalyzedAt=0;v49Put('v49Quality','NO DATA','warn');v49Put('v49Trend','NO DATA','warn');v49Put('v49Vol','NO DATA','warn');v49Freshness();if(status)status.textContent='NO DATA — '+e.message+' Indicator results were not calculated.';window.dispatchEvent(new CustomEvent('fusion:binomo-candles',{detail:{rows:[],source:'none',error:e.message}}));}
+}
+el('estimateBinomo')?.addEventListener('click',estimateScreenshot);
+// V5.2: Automatically run both existing analysis paths after an image is selected or pasted.
+// Preview's load event is shared by file-picker and clipboard flows. Never process a partial image.
+let autoShotLastSrc='',autoShotBusy=false;
+function autoAnalyzeSelectedScreenshot(){
+ const preview=el('shotPreview');
+ if(!preview||!preview.src||!preview.complete||!preview.naturalWidth||autoShotBusy||preview.src===autoShotLastSrc)return;
+ autoShotLastSrc=preview.src;autoShotBusy=true;
+ const status=el('estimateStatus');
+ if(status)status.textContent='Analyzing selected screenshot automatically…';
+ try{
+  el('shotAnalyze')?.click(); // original visual-bias flow, unchanged
+  estimateScreenshot();       // existing 18-indicator + smart assistant flow, unchanged
+ }finally{autoShotBusy=false;}
+}
+const autoShotPreview=el('shotPreview');
+autoShotPreview?.addEventListener('load',autoAnalyzeSelectedScreenshot);
+// Also covers cached images and rapid selections, without double-processing the same URL.
+el('shotFile')?.addEventListener('change',()=>{queueMicrotask(autoAnalyzeSelectedScreenshot);});
+
+el('calculateBinomo')?.addEventListener('click',async()=>{const file=el('binomoCsv')?.files?.[0],info=el('binomoCsvStatus');if(!file){if(info)info.textContent='Select a Binomo OHLC CSV file first.';return;}try{if(file.size>5e6)throw Error('CSV too large (max 5 MB).');const data=parseBinomoCsv(await file.text());const result=classify(data.rows).result;renderBinomoIndicators(result,data);v50Analyze(data.rows,result,'csv','CSV');window.dispatchEvent(new CustomEvent('fusion:binomo-candles',{detail:{rows:data.rows,source:'csv',at:Date.now()}}));}catch(e){v50Reset('CSV analysis failed: '+e.message);if(info)info.textContent='CSV not analyzed: '+e.message;}});
+function renderCoinStatus(groups){const board=el('coinStatusBoard');if(!board)return;board.textContent='';for(const coin of coins){const g=groups.find(x=>x.coin===coin);const votes=g?[g.result['EMA'],g.result['MACD'],g.result['RSI']]:[];const score=votes.reduce((a,b)=>a+b,0);const state=!g?'WAIT':score>0?'UP':score<0?'DOWN':'WAIT';const chip=document.createElement('div');chip.className='coin-chip '+state.toLowerCase();const name=document.createElement('div');name.textContent=coin;const label=document.createElement('small');label.textContent=g?state:'NO DATA';chip.append(name,label);board.append(chip);}}
+let chartMode='candles',lastGraphGroups=[];
+const palette=['#2dd4bf','#60a5fa','#f472b6','#fbbf24','#c084fc','#fb7185','#34d399','#a78bfa','#f97316','#94a3b8'];
+function lineGraph(groups){
+ lastGraphGroups=groups;
+ const canvas=el('tenGraph');if(!canvas)return;
+ const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+ ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1525';ctx.fillRect(0,0,w,h);
+ const legend=el('tenLegend');
+ if(!groups.length){ctx.fillStyle='#a8bdd1';ctx.font='20px sans-serif';ctx.fillText('Waiting for Binance market data',70,h/2);if(legend)legend.textContent='No live data';return;}
+ const length=Math.min(45,...groups.map(g=>g.rows.length));
+ const series=groups.map(g=>{const a=g.rows.slice(-length);const base=a[0][4];return a.map(r=>({t:r[0],o:(r[1]/base-1)*100,h:(r[2]/base-1)*100,l:(r[3]/base-1)*100,c:(r[4]/base-1)*100}));});
+ const avg=Array.from({length},(_,i)=>{const a=series.map(s=>s[i]);return {t:a[0].t,o:mean(a.map(r=>r.o)),h:mean(a.map(r=>r.h)),l:mean(a.map(r=>r.l)),c:mean(a.map(r=>r.c))};});
+ const values=chartMode==='candles'?avg.flatMap(r=>[r.h,r.l]):series.flatMap(s=>s.map(r=>r.c));
+ let min=Math.min(...values),max=Math.max(...values);const pad=Math.max(.08,(max-min)*.13);min-=pad;max+=pad;
+ const L=65,R=20,T=22,B=43,W=w-L-R,H=h-T-B;
+ const y=v=>T+(max-v)/(max-min)*H,x=i=>L+(i+.5)*W/length;
+ ctx.font='13px system-ui,sans-serif';ctx.textAlign='right';
+ for(let i=0;i<=5;i++){const v=max-(max-min)*i/5,yy=y(v);ctx.strokeStyle='#253a52';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,yy);ctx.lineTo(w-R,yy);ctx.stroke();ctx.fillStyle='#9bb1c7';ctx.fillText(v.toFixed(2)+'%',L-8,yy+4);}
+ if(min<0&&max>0){ctx.strokeStyle='#69849e';ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(L,y(0));ctx.lineTo(w-R,y(0));ctx.stroke();ctx.setLineDash([]);}
+ if(chartMode==='candles'){
+  const cw=Math.max(4,Math.min(14,W/length*.58));
+  avg.forEach((r,i)=>{const up=r.c>=r.o;ctx.strokeStyle=ctx.fillStyle=up?'#14cba0':'#fb6178';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x(i),y(r.h));ctx.lineTo(x(i),y(r.l));ctx.stroke();ctx.fillRect(x(i)-cw/2,Math.min(y(r.o),y(r.c)),cw,Math.max(2,Math.abs(y(r.o)-y(r.c))));});
+  if(legend)legend.innerHTML='<span>🟢 Rising average candle</span><span>🔴 Falling average candle</span><span>10-coin normalized average · not a tradable asset</span>';
+ }else{
+  series.forEach((arr,j)=>{ctx.beginPath();ctx.strokeStyle=palette[coins.indexOf(groups[j].coin)%10];ctx.lineWidth=2.4;arr.forEach((r,i)=>i?ctx.lineTo(x(i),y(r.c)):ctx.moveTo(x(i),y(r.c)));ctx.stroke();});
+  if(legend){legend.textContent='';groups.forEach(g=>{const s=document.createElement('span');s.style.borderLeft='4px solid '+palette[coins.indexOf(g.coin)%10];s.textContent=g.coin;legend.appendChild(s);});}
+ }
+ ctx.fillStyle='#a9bdd1';ctx.textAlign='center';ctx.font='13px system-ui,sans-serif';
+ const marks=[0,Math.floor((length-1)/2),length-1];
+ marks.forEach(i=>ctx.fillText(new Date(avg[i].t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),x(i),h-14));
+}
+for(const [id,mode] of [['viewCandles','candles'],['viewLines','lines']]){
+ el(id)?.addEventListener('click',()=>{chartMode=mode;for(const [button,m] of [['viewCandles','candles'],['viewLines','lines']])el(button)?.classList.toggle('active',m===mode);if(el('chartViewLabel'))el('chartViewLabel').textContent=mode==='candles'?'10-coin average · completed candles':'10 separate normalized coin lines';lineGraph(lastGraphGroups);});
+}
+let running=false;
+async function update(){if(running)return;running=true;const tf=el('tf')?.value||'1m',status=el('status');if(status)status.textContent='Loading live data…';const good=[],errors=[];await Promise.all(coins.map(async coin=>{try{const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);let response;try{response=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${coin}USDT&interval=${tf}&limit=125`,{signal:ctrl.signal,cache:'no-store'});}finally{clearTimeout(timer)}if(!response.ok)throw Error('HTTP '+response.status);const raw=await response.json();const now=Date.now();const rows=raw.filter(x=>Number(x[6])<now).map(x=>[+x[0],+x[1],+x[2],+x[3],+x[4]]);if(rows.length<70)throw Error('Need 70 Binance candles');const v=classify(rows);good.push({...v,coin});}catch(e){errors.push(coin+': '+e.message)}}));good.sort((a,b)=>coins.indexOf(a.coin)-coins.indexOf(b.coin));renderCoinStatus(good);const votes=good.map(g=>g.result['EMA']+g.result['MACD']+g.result['RSI']);const u=votes.filter(v=>v>0).length,d=votes.filter(v=>v<0).length,z=votes.filter(v=>v===0).length;[['up',u],['down',d],['neutral',z]].forEach(([id,v])=>{if(el(id))el(id).textContent=good.length?v:'—'});if(el('bias'))el('bias').textContent=!good.length?'NO DATA':u>d?'UP':d>u?'DOWN':'MIXED';if(el('explain'))el('explain').textContent=`${good.length}/10 coins loaded. EMA + MACD + RSI descriptive vote, not future-price prediction.`;if(el('tenGraphInfo'))el('tenGraphInfo').textContent=`Updated ${new Date().toLocaleTimeString()} · ${good.length}/10 coins · Completed candles only.`;if(el('log'))el('log').textContent=errors.length?errors.join('\n'):'All 10 coin feeds loaded.';if(status)status.textContent=good.length?`Live: ${good.length}/10`:'Data unavailable';running=false;}
+el('refresh')?.addEventListener('click',update);el('tf')?.addEventListener('change',update);let timer=null;function schedule(){if(timer)clearInterval(timer);const ms=Number(el('interval')?.value||30000);if(ms>0)timer=setInterval(update,ms);}el('interval')?.addEventListener('change',schedule);schedule();update();
+})();
+
+</script><script>(()=>{const $=id=>document.getElementById(id);const box=$('simpleMode');function mode(){document.body.classList.toggle('v4-simple',box.checked);(()=>{try{localStorage.setItem('fusion-simple-mode',box.checked?'1':'0')}catch(e){}})()}try{box.checked=localStorage.getItem('fusion-simple-mode')!=='0'}catch(e){}box.addEventListener('change',mode);mode();const root=$('agreement');let pending=false;function update(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;const sections=[...root.querySelectorAll('.indicator-chart-group')];let up=0,down=0,wait=0;for(const sec of sections){const tag=sec.querySelector('.indicator-chart-heading span')?.textContent?.trim();if(tag==='UP')up++;else if(tag==='DOWN')down++;else if(tag==='WAIT')wait++;}for(const [id,n] of [['indUp',up],['indDown',down],['indWait',wait]])$(id).textContent=sections.length?n+'/18':'—';});}new MutationObserver(update).observe(root,{childList:true,subtree:true});update();})();</script><script id="v52-mini-fusion-script">
+(()=>{'use strict';
+ const get=id=>document.getElementById(id);
+ const parseStats=(kind)=>{
+  const states=['UP','DOWN','WAIT'];let nodes=[];
+  if(kind==='binomo')nodes=[...document.querySelectorAll('#agreement .indicator-chart-group .indicator-chart-heading span')];
+  else nodes=[...document.querySelectorAll('#coinStatusBoard .coin-chip small')];
+  const counts={UP:0,DOWN:0,WAIT:0};
+  for(const n of nodes){const value=(n.textContent||'').trim().toUpperCase();if(states.includes(value))counts[value]++;}
+  return {counts,available:counts.UP+counts.DOWN+counts.WAIT,total:kind==='binomo'?18:10};
+ };
+ const display=(barId,countId,valueId,obj)=>{
+  const {counts,available,total}=obj;
+  const bar=get(barId);if(bar){for(const key of ['up','down','wait']){
+   const node=bar.querySelector('.'+key);
+   if(node)node.style.width=(available?counts[key.toUpperCase()]/available*100:0).toFixed(2)+'%';
+  }}
+  get(countId).textContent=available?`${available}/${total} available`:'NO DATA';
+  get(valueId).textContent=available?`UP ${counts.UP} · DOWN ${counts.DOWN} · WAIT ${counts.WAIT}`:'No valid directional votes';
+ };
+ const bias=(s)=>s.counts.UP>s.counts.DOWN&&s.counts.UP>s.counts.WAIT?'UP':s.counts.DOWN>s.counts.UP&&s.counts.DOWN>s.counts.WAIT?'DOWN':'WAIT';
+ let queued=false;
+ function refresh(){queued=false;
+  const binomo=parseStats('binomo'),binance=parseStats('binance');
+  display('miniBinomoBar','miniBinomoCount','miniBinomoVals',binomo);
+  display('miniBinanceBar','miniBinanceCount','miniBinanceVals',binance);
+  const assistant=(get('v50Decision')?.textContent||'').trim().toUpperCase();
+  const stale=assistant.includes('STALE');
+  const assistantValid=assistant==='UP'||assistant==='DOWN';
+  const verdict=get('miniFusionVerdict'),word=get('miniFusionWord'),note=get('miniFusionNote');
+  let mode='wait',headline='WAIT · NEED DATA',comment='Upload a Binomo screenshot and wait for Binance coin data.';
+  if(stale){headline='WAIT · SCREENSHOT STALE';comment='Upload a fresh Binomo screenshot. Binance data is not a substitute.';}
+  else if(binomo.available<3){headline='WAIT · BINOMO DATA LOW';comment='Not enough usable Binomo indicator votes. Review screenshot quality or import authorized OHLC.';}
+  else if(binance.available<5){headline='WAIT · BINANCE DATA LOW';comment='Binance coin statuses are unavailable or incomplete. Binomo indicators remain separate.';}
+  else if(!assistantValid){headline='WAIT · BINOMO CAUTION';comment='Smart Candle Assistant is WAIT or unavailable. Do not override it using Binance votes.';}
+  else{
+   const a=bias(binomo),b=bias(binance);
+   if(a==='WAIT'||b==='WAIT'){headline='MIXED · NO AGREEMENT';comment='One or both vote groups are mixed. No combined directional conclusion.';}
+   else if(a===b){mode='same';headline='SAME BIAS · '+a;comment='Both sources currently lean '+a+', but Binance is a different market, not independent confirmation of Binomo next candle.';}
+   else{mode='conflict';headline='CONFLICT · NO MATCH';comment='Binomo indicator bias is '+a+' while Binance coin status leans '+b+'. Do not treat the combination as a reliable signal.';}
+  }
+  verdict.classList.remove('same','conflict');if(mode!=='wait')verdict.classList.add(mode);
+  word.textContent=headline;note.textContent=comment;
+ }
+ function request(){if(queued)return;queued=true;requestAnimationFrame(refresh);}
+ for(const id of ['agreement','coinStatusBoard','v50Decision']){
+  const elem=get(id);if(elem)new MutationObserver(request).observe(elem,{childList:true,subtree:true,characterData:true});
+ }
+ request();
+})();
+</script><script id="focused-tools-script">(()=>{'use strict';
+ const maps=[['v49Trend','focusTrend'],['v50Pattern','focusPattern'],['v50Zones','focusZones'],['v49Vol','focusVol']];
+ const update=()=>{for(const [src,out] of maps){const s=document.getElementById(src),t=document.getElementById(out);if(s&&t){const val=(s.textContent||'').trim();if(t.textContent!==(val||'NO DATA'))t.textContent=val||'NO DATA';}}};
+ for(const [src] of maps){const node=document.getElementById(src);if(node)new MutationObserver(update).observe(node,{childList:true,subtree:true,characterData:true});}
+ update();
+})();</script><script>
+/* Extra standalone analysis. It never modifies existing V5.2 results or trade directions. */
+(()=>{'use strict';
+ const $=id=>document.getElementById(id), U='#14d59f',D='#ff637c',N='#bbcadc',W='#ffc04d';
+ let dataset=null, visible=55, offset=0, pointerDown=null;
+ const validNumber=x=>Number.isFinite(x);
+ const average=v=>v.reduce((a,b)=>a+b,0)/Math.max(1,v.length);
+ const fmt=x=>!validNumber(x)?'—':dataset?.source==='screenshot'?x.toFixed(1):Math.abs(x)>=100?x.toFixed(3):x.toFixed(5);
+ const indicator=(key,headline,details,tone)=>{
+   const v=$('adv'+key),i=$('adv'+key+'Info');if(v){v.textContent=headline;v.style.color=tone||'#e5f2ff';}if(i)i.textContent=details;
+ };
+ function reset(note){dataset=null;offset=0;indicator('Aroon','NO DATA','Needs 26 closed candles');indicator('Donchian','NO DATA','Needs 21 closed candles');indicator('Chop','NO DATA','Needs 15 closed candles');indicator('Keltner','NO DATA','Needs 30 closed candles');$('advSource').textContent=note||'Upload a Binomo screenshot for analysis.';$('advRange').textContent='No candle data';draw();}
+ function aroon(rows,period=25){
+  if(rows.length<period+1)return null;
+  const a=rows.slice(-period);let hi=0,lo=0;
+  for(let j=1;j<a.length;j++){if(a[j][2]>=a[hi][2])hi=j;if(a[j][3]<=a[lo][3])lo=j;}
+  const up=100*(period-(a.length-1-hi))/period,down=100*(period-(a.length-1-lo))/period;
+  return {up,down};
+ }
+ function donchian(rows,period=20,i=rows.length-1){
+  if(i<period)return null;const prev=rows.slice(i-period,i);return {upper:Math.max(...prev.map(r=>r[2])),lower:Math.min(...prev.map(r=>r[3]))};
+ }
+ function tr(rows,i){const r=rows[i],prev=i?rows[i-1][4]:r[4];return Math.max(r[2]-r[3],Math.abs(r[2]-prev),Math.abs(r[3]-prev));}
+ function choppiness(rows,period=14){
+  if(rows.length<period+1)return null;
+  const tail=rows.slice(-period),start=rows.length-period;
+  const sum=tail.reduce((acc,r,j)=>acc+tr(rows,start+j),0),range=Math.max(...tail.map(r=>r[2]))-Math.min(...tail.map(r=>r[3]));
+  if(!(range>0&&sum>0))return null;
+  return Math.min(100,Math.max(0,100*Math.log10(sum/range)/Math.log10(period)));
+ }
+ function keltnerSeries(rows){
+  const es=[],av=[],up=[],low=[];let e=NaN,atr=NaN;
+  for(let i=0;i<rows.length;i++){
+   const close=rows[i][4],t=tr(rows,i);
+   e=!validNumber(e)?close:e+(close-e)*2/21;
+   atr=!validNumber(atr)?t:atr+(t-atr)/10;
+   es.push(i>=29?e:NaN);av.push(i>=29?atr:NaN);
+   up.push(i>=29?e+1.5*atr:NaN);low.push(i>=29?e-1.5*atr:NaN);
+  }
+  return {mid:es,upper:up,lower:low};
+ }
+ function analyze(){
+  if(!dataset)return;const rows=dataset.rows,n=rows.length,close=rows[n-1][4];
+  const ar=aroon(rows);if(!ar)indicator('Aroon','INSUFFICIENT DATA',`${n}/26 completed candles`,W);
+  else indicator('Aroon',ar.up>ar.down+12?'UP TREND':ar.down>ar.up+12?'DOWN TREND':'MIXED',`Up ${ar.up.toFixed(0)} · Down ${ar.down.toFixed(0)} (0–100)`,ar.up>ar.down+12?U:ar.down>ar.up+12?D:W);
+  const dc=donchian(rows);if(!dc)indicator('Donchian','INSUFFICIENT DATA',`${n}/21 completed candles`,W);
+  else indicator('Donchian',close>dc.upper?'BREAKOUT UP':close<dc.lower?'BREAKOUT DOWN':'IN RANGE',`Prev 20 high ${fmt(dc.upper)} · low ${fmt(dc.lower)}`,close>dc.upper?U:close<dc.lower?D:N);
+  const ch=choppiness(rows);if(ch===null)indicator('Chop','INSUFFICIENT DATA',`${n}/15 completed candles (or zero price range)`,W);
+  else indicator('Chop',ch>=61.8?'CHOPPY':ch<=38.2?'TRENDING':'MIXED',`Index ${ch.toFixed(1)} · not a direction`,ch>=61.8?W:N);
+  if(n<30)indicator('Keltner','INSUFFICIENT DATA',`${n}/30 completed candles`,W);
+  else {const kb=keltnerSeries(rows),up=kb.upper[n-1],lo=kb.lower[n-1];indicator('Keltner',close>up?'ABOVE BAND':close<lo?'BELOW BAND':'IN CHANNEL',`EMA20 ±1.5 × ATR10 · ${fmt(lo)} to ${fmt(up)}`,close>up?U:close<lo?D:N);}
+  const source=dataset.source==='csv'?'Authorized OHLC CSV':'Binomo screenshot pixel estimate';
+  $('advSource').textContent=`${source} · ${n} completed candles · ${new Date(dataset.at).toLocaleTimeString()} · no live Binomo connection`;
+  draw();
+ }
+ const cssChartSize=()=>{
+   const c=$('advCandleCanvas'),wrap=c.parentElement;
+   const w=Math.max(260,Math.floor(wrap.getBoundingClientRect().width-2)),h=w<520?216:305;
+   const dpr=Math.min(2,window.devicePixelRatio||1);c.width=Math.floor(w*dpr);c.height=Math.floor(h*dpr);
+   c.style.width=w+'px';c.style.height=h+'px';const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w,h};
+ };
+ function draw(){
+  const c=$('advCandleCanvas');if(!c)return;
+  const {ctx,w,h}=cssChartSize();ctx.fillStyle='#0a1525';ctx.fillRect(0,0,w,h);
+  if(!dataset?.rows?.length){ctx.font='13px system-ui';ctx.textAlign='center';ctx.fillStyle='#a9bfd2';ctx.fillText('Waiting for completed candle data',w/2,h/2);return;}
+  const rows=dataset.rows,showCount=Math.min(visible,rows.length),end=Math.max(showCount,rows.length-offset),start=end-showCount,s=rows.slice(start,end);
+  const padL=11,padR=62,padT=20,padB=35,CW=w-padL-padR,CH=h-padT-padB;
+  if(CW<50||CH<50)return;
+  const dcLines=s.map((r,k)=>donchian(rows,20,start+k));const kc=keltnerSeries(rows);
+  let ys=s.flatMap(r=>[r[2],r[3]]);
+  if($('advDonchianToggle').checked)for(const d of dcLines)if(d)ys.push(d.upper,d.lower);
+  if($('advKeltnerToggle').checked)for(let i=start;i<end;i++)if(validNumber(kc.upper[i]))ys.push(kc.upper[i],kc.lower[i]);
+  let yMin=Math.min(...ys),yMax=Math.max(...ys);let gap=Math.max((yMax-yMin)*.1,Math.abs(yMax)*.0001,0.00001);yMin-=gap;yMax+=gap;
+  const x=i=>padL+(i+.5)*(CW/s.length),y=v=>padT+((yMax-v)/(yMax-yMin))*CH;
+  ctx.lineWidth=1;ctx.font='10px system-ui';ctx.textAlign='left';
+  for(let k=0;k<=4;k++){const value=yMax-(yMax-yMin)*k/4,yy=y(value);ctx.strokeStyle='#283b51';ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(padL+CW,yy);ctx.stroke();ctx.fillStyle='#8ba6bc';ctx.fillText(fmt(value),padL+CW+5,yy+3);}
+  const line=(arr,color)=>{ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();let begun=false;for(let k=0;k<arr.length;k++){const v=arr[k];if(!validNumber(v)){begun=false;continue;}if(!begun){ctx.moveTo(x(k),y(v));begun=true;}else ctx.lineTo(x(k),y(v));}ctx.stroke();};
+  if($('advDonchianToggle').checked){line(dcLines.map(d=>d?.upper??NaN),'#4da2ff');line(dcLines.map(d=>d?.lower??NaN),'#4da2ff');}
+  if($('advKeltnerToggle').checked){line(kc.upper.slice(start,end),'#b689ff');line(kc.lower.slice(start,end),'#b689ff');}
+  const candleW=Math.max(1.5,Math.min(10,(CW/s.length)*.67));
+  s.forEach((r,i)=>{const xx=x(i),green=r[4]>=r[1];ctx.fillStyle=ctx.strokeStyle=green?U:D;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(xx,y(r[2]));ctx.lineTo(xx,y(r[3]));ctx.stroke();const top=Math.min(y(r[1]),y(r[4])),height=Math.max(1.5,Math.abs(y(r[1])-y(r[4])));ctx.fillRect(xx-candleW/2,top,candleW,height);});
+  for(const k of [0,Math.floor((s.length-1)/2),s.length-1]){const idx=start+k,dd=new Date(rows[idx][0]);const text=dataset.source==='csv'?(validNumber(dd.getTime())?dd.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'C'+(idx+1)):'C'+(idx+1);ctx.fillStyle='#a5b8cc';ctx.textAlign=k===0?'left':k===s.length-1?'right':'center';ctx.fillText(text,x(k),h-12);}
+  $('advRange').textContent=`Candles ${start+1}–${end} of ${rows.length}${dataset.source==='screenshot'?' · approximate':''}`;
+ }
+ window.addEventListener('fusion:binomo-candles',event=>{
+  const d=event.detail||{};
+  if(!Array.isArray(d.rows)||d.rows.length<20){reset(d.error?`Analysis unavailable: ${d.error}`:'Not enough valid completed candle data');return;}
+  const rows=d.rows.filter(r=>Array.isArray(r)&&r.length>=5&&r.slice(1,5).every(validNumber)&&r[2]>=Math.max(r[1],r[4])&&r[3]<=Math.min(r[1],r[4]));
+  if(rows.length<20){reset('Candle data validation failed · INSUFFICIENT DATA');return;}
+  dataset={rows:rows.map(r=>r.slice(0,5)),source:d.source==='csv'?'csv':'screenshot',at:d.at||Date.now()};offset=0;analyze();
+ });
+ for(const id of ['advDonchianToggle','advKeltnerToggle'])$(id)?.addEventListener('change',draw);
+ $('advZoomIn')?.addEventListener('click',()=>{visible=Math.max(14,visible-12);offset=Math.min(offset,Math.max(0,(dataset?.rows.length||0)-visible));draw();});
+ $('advZoomOut')?.addEventListener('click',()=>{visible=Math.min(150,visible+12);offset=Math.min(offset,Math.max(0,(dataset?.rows.length||0)-visible));draw();});
+ $('advReset')?.addEventListener('click',()=>{offset=0;visible=55;draw();});
+ const chart=$('advCandleCanvas');chart?.addEventListener('pointerdown',e=>{pointerDown={x:e.clientX,offset};chart.setPointerCapture?.(e.pointerId);});
+ chart?.addEventListener('pointermove',e=>{if(!pointerDown||!dataset)return;const pixelsPerCandle=chart.getBoundingClientRect().width/Math.min(visible,dataset.rows.length);const shift=Math.round((e.clientX-pointerDown.x)/Math.max(3,pixelsPerCandle));const max=Math.max(0,dataset.rows.length-Math.min(visible,dataset.rows.length));offset=Math.min(max,Math.max(0,pointerDown.offset+shift));draw();});
+ chart?.addEventListener('pointerup',()=>{pointerDown=null;});chart?.addEventListener('pointercancel',()=>{pointerDown=null;});
+ $('advancedChartAnalysis')?.addEventListener('toggle',()=>{if($('advancedChartAnalysis').open)requestAnimationFrame(draw);});
+ window.addEventListener('resize',()=>{if($('advancedChartAnalysis')?.open)draw();});
+ reset();
+})();
+
+</script><script>
+/* V5.2 combined 22-indicator VIEW ONLY. Does not modify original 18 formulas, Smart Candle Assistant or 4 advanced rules. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const ORIGINAL=['EMA','MACD','RSI','Supertrend','ADX + DI','Bollinger Bands','Stochastic RSI','Parabolic SAR','CCI','Williams %R','Momentum','Awesome Oscillator','Fractals','Moving Average','Fractal Chaos Bands','Alligator','ATR','Stochastic'];
+const COLORS={UP:'#17d6a1',DOWN:'#ff637c',WAIT:'#aebdd0',CONTEXT:'#74b5ec','NO DATA':'#526881'};
+const TEXT={UP:'UP',DOWN:'DOWN',WAIT:'WAIT',CONTEXT:'CONTEXT','NO DATA':'NO DATA'};
+function statusFromTitle(head){
+ const v=(head||'').trim().toUpperCase();
+ if(v==='UP')return 'UP';if(v==='DOWN')return 'DOWN';if(v==='WAIT')return 'WAIT';
+ return 'NO DATA';
+}
+function originals(){
+ const map=new Map();
+ for(const c of $('agreement')?.querySelectorAll('.indicator-chart-group')||[]){
+  const name=c.querySelector('.indicator-chart-heading strong')?.textContent?.trim();
+  const state=c.querySelector('.indicator-chart-heading span')?.textContent;
+  if(name&&ORIGINAL.includes(name))map.set(name,statusFromTitle(state));
+ }
+ return ORIGINAL.map(name=>({name,status:name==='ATR'&&map.get(name)==='WAIT'?'CONTEXT':map.get(name)||'NO DATA',group:'Existing 18',info:name==='ATR'?'Volatility only':''}));
+}
+function extra(name,nodeId){
+ const raw=($(nodeId)?.textContent||'').trim().toUpperCase();
+ let status='NO DATA',info='';
+ if(raw==='NO DATA'||raw==='INSUFFICIENT DATA'||!raw)return {name,status,group:'New 4',info:raw==='INSUFFICIENT DATA'?'Insufficient candles':''};
+ if(name==='Aroon'){status=raw==='UP TREND'?'UP':raw==='DOWN TREND'?'DOWN':'WAIT';info='Trend direction';}
+ else if(name==='Donchian'){status=raw==='BREAKOUT UP'?'UP':raw==='BREAKOUT DOWN'?'DOWN':'WAIT';info='Breakout / range';}
+ else if(name==='Choppiness'){status='CONTEXT';info=raw==='CHOPPY'?'Choppy market':raw==='TRENDING'?'Trending market':'Mixed trend regime';}
+ else if(name==='Keltner'){status=raw==='ABOVE BAND'?'UP':raw==='BELOW BAND'?'DOWN':'WAIT';info='Channel position';}
+ return {name,status,group:'New 4',info};
+}
+function render(source,rows){
+ const items=[...originals(),extra('Aroon','advAroon'),extra('Donchian','advDonchian'),extra('Choppiness','advChop'),extra('Keltner','advKeltner')];
+ const counts={UP:0,DOWN:0,WAIT:0,CONTEXT:0,'NO DATA':0};
+ items.forEach(item=>counts[item.status]++);
+ const container=$('combined22Grid');if(!container)return;
+ container.replaceChildren();
+ for(const item of items){
+  const cell=document.createElement('div');cell.className='combined22-item';
+  const top=document.createElement('div');top.className='combined22-top';
+  const title=document.createElement('div');title.className='combined22-name';title.textContent=item.name;
+  const badge=document.createElement('b');badge.className='combined22-state';badge.textContent=TEXT[item.status];badge.style.color=COLORS[item.status];
+  const strip=document.createElement('div');strip.className='combined22-strip';
+  const fill=document.createElement('b');fill.style.background=COLORS[item.status];strip.append(fill);
+  const info=document.createElement('div');info.className='combined22-tag';info.textContent=item.info||item.group;
+  top.append(title,badge);cell.append(top,strip,info);container.append(cell);
+ }
+ $('combined22Counts').replaceChildren();
+ for(const [status,label] of [['UP','🟢 UP'],['DOWN','🔴 DOWN'],['WAIT','⚪ WAIT'],['CONTEXT','🔵 CONTEXT'],['NO DATA','— NO DATA']]){
+  const span=document.createElement('span');span.textContent=`${label} ${counts[status]}`;$('combined22Counts').append(span);
+ }
+ const meter=$('combined22Meter');meter.replaceChildren();
+ for(const status of ['UP','DOWN','WAIT','CONTEXT','NO DATA']){
+  if(!counts[status])continue;const s=document.createElement('span');s.style.width=(counts[status]/22*100)+'%';s.style.background=COLORS[status];meter.append(s);
+ }
+ meter.setAttribute('aria-label',`22 indicators: ${counts.UP} up, ${counts.DOWN} down, ${counts.WAIT} wait, ${counts.CONTEXT} non-directional context, ${counts['NO DATA']} unavailable.`);
+ $('combined22DataChip').textContent=source==='screenshot'?'PIXEL ESTIMATE':source==='csv'?'OHLC CSV':'NO DATA';
+ const note=$('combined22Note');
+ if(source==='none')note.textContent='NO DATA: Upload a usable screenshot or authorized OHLC CSV. Not enough data must not be counted as WAIT.';
+ else note.textContent=`${rows} completed ${source==='screenshot'?'pixel-estimated':'imported'} candles. 18 original indicators + 4 chart tools. ATR and Choppiness are context, not directional votes. NOT a win probability or reliable next-candle forecast. No live Binomo feed.`;
+}
+window.addEventListener('fusion:binomo-candles',e=>{
+ const d=e.detail||{};render(Array.isArray(d.rows)&&d.rows.length>=20?(d.source||'screenshot'):'none',Array.isArray(d.rows)?d.rows.length:0);
+});
+render('none',0);
+})();
+</script><script>
+/* Crypto 10 Fusion add-on: next-candle timing, research filter, quality guard, local journal. */
+/* This module does not change the Smart Candle Assistant V5.2 formulas or automatically place trades. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id),M=60000,KEY='crypto10-nextcandle-v1-journal';
+const COLORS={UP:'#15d8a3',DOWN:'#fb637d',WAIT:'#c0d0e2'};
+let dataset=null,entry=null,lockId='',lastUploadAt=0,captureAt=0,captureTrusted=false,backtestData=null;
+let journal=[];try{const raw=JSON.parse(localStorage.getItem(KEY)||'[]');journal=Array.isArray(raw)?raw.slice(-600):[];}catch(_){}
+const rounded=t=>Math.floor(t/M)*M;
+const hh=t=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date(t));
+const ss=t=>new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date(t));
+const put=(id,t)=>{const e=$(id);if(e)e.textContent=String(t);};
+const median=v=>{const s=v.filter(Number.isFinite).sort((a,b)=>a-b);return s.length?s[Math.floor(s.length/2)]:NaN;};
+const mean=v=>v.reduce((a,b)=>a+b,0)/Math.max(1,v.length);
+function ema(v,n){let p=NaN;return v.map(x=>{p=Number.isFinite(p)?p+(x-p)*2/(n+1):x;return p;});}
+function rsi(v,n=14){if(v.length<n+1)return NaN;let g=0,l=0;for(let i=1;i<=n;i++){const d=v[i]-v[i-1];g+=Math.max(d,0);l+=Math.max(-d,0);}g/=n;l/=n;for(let i=n+1;i<v.length;i++){let d=v[i]-v[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;}return l===0?(g?100:50):100-100/(1+g/l);}
+function decide(rows){
+ const n=rows.length;if(n<50)return {dir:'WAIT',reason:`Need 50 completed candles; currently ${n}.`,score:0,up:0,down:0,bias:'NO DATA',votes:[],blocks:['Insufficient candle samples']};
+ const closes=rows.map(r=>r[4]),e9=ema(closes,9),e21=ema(closes,21),e12=ema(closes,12),e26=ema(closes,26);
+ const mac=e12.map((v,i)=>v-e26[i]),sig=ema(mac,9),i=n-1,price=closes[i],last=rows[i];
+ const trueRanges=rows.slice(1).map((r,j)=>Math.max(r[2]-r[3],Math.abs(r[2]-rows[j][4]),Math.abs(r[3]-rows[j][4])));
+ const atr=mean(trueRanges.slice(-14));
+ const recent=rows.slice(-15),ranges=recent.map(r=>r[2]-r[3]),typical=median(ranges),lastRange=last[2]-last[3];
+ const rs=rsi(closes),prior=rows.slice(-21,-1),resistance=Math.max(...prior.map(r=>r[2])),support=Math.min(...prior.map(r=>r[3]));
+ let up=0,down=0;const votes=[];
+ const add=(name,dir)=>{votes.push({name,dir:dir>0?'UP':dir<0?'DOWN':'NEUTRAL'});if(dir>0)up++;if(dir<0)down++;};
+ add('EMA trend',e9[i]>e21[i]&&e9[i]>e9[i-2]?1:e9[i]<e21[i]&&e9[i]<e9[i-2]?-1:0);
+ const hist=mac[i]-sig[i],histPrev=mac[i-1]-sig[i-1];add('MACD',hist>0&&hist>histPrev?1:hist<0&&hist<histPrev?-1:0);
+ add('RSI',rs>=53&&rs<=70?1:rs<=47&&rs>=30?-1:0);
+ add('Closed candles',closes[i]>closes[i-1]&&closes[i-1]>=closes[i-2]?1:closes[i]<closes[i-1]&&closes[i-1]<=closes[i-2]?-1:0);
+ add('Price vs EMA',price>e9[i]+atr*.04?1:price<e9[i]-atr*.04?-1:0);
+ let dir=up>=4&&down<=1?'UP':down>=4&&up<=1?'DOWN':'WAIT';
+ const bias=up>=2&&up>=down+2?'UP LEAN':down>=2&&down>=up+2?'DOWN LEAN':'MIXED';
+ const block=[];
+ if(!Number.isFinite(atr)||atr<=0||typical<=0)block.push('Missing usable volatility data');
+ if(lastRange>typical*2.5)block.push('Unusually large latest candle');
+ if(lastRange<typical*.2)block.push('Near-flat latest candle');
+ const closeVar=mean(closes.slice(-15).map(v=>Math.abs(v-mean(closes.slice(-15)))));
+ if(closeVar<atr*.28)block.push('Choppy / sideways market');
+ if(dir==='UP'&&Number.isFinite(resistance)&&price<=resistance&&price>=resistance-atr*.65)block.push('Near prior resistance');
+ if(dir==='DOWN'&&Number.isFinite(support)&&price>=support&&price<=support+atr*.65)block.push('Near prior support');
+ if(block.length)dir='WAIT';
+ const reason=dir==='WAIT'?(block.length?block.join('; '):`Only ${up} UP / ${down} DOWN of 5 rules; at least 4 aligned rules required for a directional timed decision`):`Research bias ${dir} (${up} UP / ${down} DOWN rules); not a verified probability`;
+ return {dir,reason,up,down,votes,bias,blocks:block,score:Math.max(up,down),atr};
+}
+function getInterval(rows){if(rows.length<2)return M;return median(rows.slice(-Math.min(30,rows.length)).slice(1).map((r,i,a)=>r[0]-rows[rows.length-a.length-1+i][0]));}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(journal.slice(-600)));}catch(_){put('ncJournalNote','Storage unavailable: journal will be lost when page closes.');}}
+function renderJournal(){
+ const shown=journal.slice().reverse().slice(0,12),list=$('ncJournalList');if(!list)return;list.textContent='';
+ if(!shown.length){list.textContent='No signals logged yet. UP/DOWN research signals are logged automatically; record outcomes manually or import later matching OHLC.';}
+ for(const r of shown){const item=document.createElement('div');item.className='nc-journal-line';
+  const tag=document.createElement('div');tag.textContent=`${r.dir} · ${hh(r.target)} · ${r.source.toUpperCase()}`;tag.style.fontWeight='750';
+  const status=document.createElement('small');status.textContent=r.outcome?`${r.outcome} · ${r.method||'manual'}`:'Outcome pending';
+  const actions=document.createElement('div');actions.className='nc-journal-actions';
+  for(const st of ['WIN','LOSS','TIE']){const btn=document.createElement('button');btn.type='button';btn.textContent=st;btn.className=r.outcome===st?'nc-active':'';btn.addEventListener('click',()=>{r.outcome=st;r.method='manual';save();renderJournal();});actions.append(btn);}
+  item.append(tag,status,actions);list.append(item);
+ }
+ const resolved=journal.filter(r=>r.outcome),wins=resolved.filter(r=>r.outcome==='WIN').length,losses=resolved.filter(r=>r.outcome==='LOSS').length,ties=resolved.filter(r=>r.outcome==='TIE').length;
+ put('ncJournalStats',`${journal.length} logged · ${wins} win / ${losses} loss / ${ties} tie · ${resolved.length?Math.round(100*wins/resolved.length)+'% recorded wins':'no verified win rate'} (manual or CSV results)`);
+}
+function applyCsvOutcomes(rows){
+ const byTime=new Map(rows.map(r=>[r[0],r]));let changed=0;
+ for(const j of journal){if(j.source!=='csv'||j.outcome)continue;const bar=byTime.get(j.target);if(!bar||Date.now()<j.target+M)continue;
+  const actual=bar[4]>bar[1]?'UP':bar[4]<bar[1]?'DOWN':'TIE';j.outcome=actual==='TIE'?'TIE':actual===j.dir?'WIN':'LOSS';j.method='matched later CSV';changed++;
+ }if(changed){save();renderJournal();put('ncJournalNote',`${changed} older imported-CSV signal outcome(s) checked against newly supplied matching candle timestamps.`);}
+}
+function logSignal(dir,target,source,reason){const id=`${source}:${target}:${dir}`;if(id===lockId)return;lockId=id;
+ if(journal.some(r=>r.source===source&&r.target===target))return;
+ journal.push({id,target,dir,source,reason,created:Date.now(),outcome:null});journal=journal.slice(-600);save();renderJournal();
+}
+function show(dir,headline,reason,meta,valid=false){
+ put('ncDirection',dir);const el=$('ncDirection');if(el){el.style.color=COLORS[dir]||COLORS.WAIT;el.className='nc-decision '+dir.toLowerCase();}
+ put('ncHeadline',headline);put('ncReason',reason);put('ncData',meta);$('ncBadge').textContent=valid?'TIMED RESEARCH':'NO ACTIONABLE SIGNAL';
+}
+function paintBias(r,d){
+ const isCsv=d.source==='csv'; const b=r.bias||'NO DATA',read=$('ncBias');
+ put('ncBias',b);if(read)read.style.color=b==='UP LEAN'?COLORS.UP:b==='DOWN LEAN'?COLORS.DOWN:COLORS.WAIT;
+ put('ncBiasStrength',`${r.up||0} UP / ${r.down||0} DOWN / ${Math.max(0,5-(r.up||0)-(r.down||0))} NEUTRAL · ${Math.max(r.up||0,r.down||0)}/5 matching research checks · NOT win probability`);
+ put('ncBiasSource',isCsv?'USER CSV · CHECK TIMESTAMPS':'SCREENSHOT · PIXEL ESTIMATE');
+ put('ncBiasReason',`${r.reason} · This panel is a directional study, not a safe entry call. ${isCsv?'Check that the CSV actually matches the current instrument.':'Chart objects and indicators can be mistaken for candles.'}`);
+ const el=$('ncVotes');if(el){el.textContent='';if(!r.votes?.length){el.textContent='No completed candle data';}else for(const v of r.votes){const item=document.createElement('div');item.className='nc-vote '+v.dir.toLowerCase();const name=document.createElement('b');name.textContent=v.name;const stat=document.createElement('small');stat.textContent=v.dir;item.append(name,stat);el.append(item);}}
+}
+function preview(){
+ const now=Date.now(),start=rounded(now),next=start+M;
+ put('ncClock',ss(now));put('ncNextBoundary',hh(next));
+ if(!dataset){put('ncLastClose','—');put('ncTarget',`${hh(next)} – ${hh(next+M)}`);put('ncResultClock',hh(next+M));put('ncEntryWindow','No chart yet');put('ncPhase',`Capture the ${hh(next)} candle just after it opens`);put('ncPhaseDetail',`Open your 1-minute chart, take a new screenshot between ${hh(next)}:00 and :08 seconds, upload it immediately.`);show('WAIT','Upload screenshot / CSV','No chart data available. Screenshot can show an unverified directional study but not a reliable trade instruction.','No data available');return;}
+ const d=dataset,rows=d.rows,isCSV=d.source==='csv';
+ // The screenshot parser only yields pixel-relative levels, not true candle timestamps.
+ // A screenshot taken before the boundary is a PREVIEW, never an entry signal for the future candle.
+ const target=isCSV?rows[rows.length-1][0]+M:(d.at-rounded(d.at)<9000?rounded(d.at):rounded(d.at)+M),targetEnd=target+M;
+ put('ncTarget',`${hh(target)} – ${hh(targetEnd)}`);put('ncResultClock',hh(targetEnd));
+ put('ncLastClose',isCSV?hh(rows[rows.length-1][0]+M):'Time not measurable from pixels');
+ put('ncCount',`${rows.length} apparent closed · ${isCSV?'CSV candle levels':'unverified pixel estimates'}${d.preset?' · '+d.preset+' scan':''}`);
+ const secondsToNext=Math.max(0,Math.ceil((next-now)/1000));
+ let phase='',phaseDetail='';
+ if(now<target){phase=`NEXT CANDLE NOT OPEN · ${secondsToNext}s to ${hh(target)}`;phaseDetail=`Current ${hh(start)} screenshot can give a chart lean, but is not a valid snapshot for ${hh(target)}. Take another screenshot at the start of ${hh(target)}.`;}
+ else if(now<target+9000){phase=`CAPTURE WINDOW · ${Math.max(0,Math.ceil((target+9000-now)/1000))}s remaining`;phaseDetail='Screenshot must show this target candle just opening; confirm freshness manually. Do not use old clipboard images.';}
+ else{phase=`EXPIRED SNAPSHOT · next capture ${hh(next)}`;phaseDetail=`The ${hh(target)} target's early window has closed. A new 1-minute screenshot right after ${hh(next)} is needed. The old chart lean is for study only.`;}
+ put('ncPhase',phase);put('ncPhaseDetail',phaseDetail);
+ put('ncEntryWindow',now<target?`Not open; capture at ${hh(target)}`:now>=target+9000?'Late: new screenshot needed':`${Math.ceil((target+9000-now)/1000)}s left to review`);
+ const result=decide(rows);paintBias(result,d);
+ const problems=[];
+ if(d.source==='screenshot'){
+  if(!captureTrusted)problems.push('Capture time unverified: tick the fresh chart confirmation only if truly just captured');
+  if(now-d.at>9000)problems.push('Upload/analysis not within the first 9 seconds of target');
+  if(rows.length<50)problems.push('Need 50 usable pixel-derived candles for these 5 research checks');
+  if(d.quality==='LOW CONFIDENCE')problems.push('Low-quality pixel reading: crop a clean candlestick chart or use timestamped CSV');
+ } else {
+  if(rows.length<50)problems.push('Need 50 consecutive completed 1-minute candles');
+  const tf=getInterval(rows);if(tf!==M||rows.slice(-10).some((r,i,a)=>i>0&&r[0]-a[i-1][0]!==M))problems.push('Imported OHLC timestamps are not consecutive 1-minute candles');
+  if(target<now-M||target>now+M)problems.push('Imported CSV does not describe the current upcoming candle');
+ }
+ if(now<target)problems.push('Target candle not open yet');
+ if(now>=target+9000)problems.push('Early signal window expired');
+ if(now>=target+M)problems.push('Target candle already ended');
+ const decision=problems.length?'WAIT':result.dir;
+ const core=decision==='WAIT'?(problems.length?problems.slice(0,2).join(' · '):result.reason):result.reason;
+ const reason=core+(problems.length>2?` · +${problems.length-2} more timing/data checks`:'');
+ const meta=`${isCSV?'User-provided CSV; not a verified live feed':'Unverified chart pixels'} · ${rows.length} apparent closed candles · ${result.up||0} UP / ${result.down||0} DOWN research votes · see CHART DIRECTION READOUT above`;
+ show(decision,decision==='WAIT'?(now<target?'WAIT · NEXT CANDLE NOT OPEN':now>=target+9000?'WAIT · STALE / LATE':problems.length?'WAIT · DATA / TIME CHECK':'WAIT · NOT ENOUGH RULE AGREEMENT'):`${decision} · RESEARCH ONLY`,reason,meta,decision!=='WAIT');
+ if(decision!=='WAIT')logSignal(decision,target,d.source,result.reason);
+}
+function renderFailure(err){dataset=null;captureTrusted=false;$('ncFreshConfirm').checked=false;put('ncBias','NO CHART DATA');put('ncBiasStrength','Analysis unavailable: candle extraction failed');put('ncBiasSource','NO DATA');put('ncVotes','No validated candles');put('ncBiasReason',err);put('ncCount','NO DATA');put('ncLastClose','—');put('ncJournalNote',`Candle reading: ${err}`);show('WAIT','WAIT · DATA ERROR',err+' · Screenshot paste success does not prove candles were read.','No candles available');}
+function backtest(rows){
+ let total=0,win=0,loss=0,tie=0,signal=0;
+ if(rows.length<55)return 'Backtest needs at least 55 timestamped 1-minute completed candles.';
+ for(let k=50;k<rows.length;k++){
+  if(rows[k][0]-rows[k-1][0]!==M)continue;
+  const r=decide(rows.slice(0,k));total++;if(r.dir==='WAIT')continue;signal++;
+  const actual=rows[k][4]>rows[k][1]?'UP':rows[k][4]<rows[k][1]?'DOWN':'TIE';
+  if(actual==='TIE')tie++;else if(actual===r.dir)win++;else loss++;
+ }
+ return signal?`${win} win / ${loss} loss / ${tie} tie · ${signal} signals from ${total} tested candles · ${Math.round(100*win/signal)}% observed win proportion. Historical only; not out-of-sample and no guarantee.`:`No UP/DOWN signals over ${total} tested candles (filters mostly WAIT). Try longer clean CSV, not screenshot data.`;
+}
+function onData(e){const d=e.detail||{};if(!Array.isArray(d.rows)||d.rows.length<20){renderFailure(d.error||'Not enough identifiable completed candles');return;}
+ const rows=d.rows.filter(r=>Array.isArray(r)&&r.length>=5&&r.slice(1,5).every(Number.isFinite)).map(r=>r.slice(0,5));if(rows.length<20){renderFailure('Invalid candle levels');return;}
+ const source=d.source==='csv'?'csv':'screenshot';dataset={rows,source,at:d.at||Date.now(),preset:d.preset||'',quality:d.quality||'',estimated:source==='screenshot'};
+ if(source==='screenshot'){
+  const file=$('shotFile')?.files?.[0];captureAt=file?.lastModified||0;
+  // Recent photo metadata is only a freshness hint, not proof of correct chart candles.
+  captureTrusted=false;$('ncFreshConfirm').checked=false; // Never infer fresh capture from paste/file metadata
+  put('ncCaptureInfo',captureAt&&Math.abs(captureAt-Date.now())<10*M?`Photo file modified ${ss(captureAt)} · not a verified chart clock`:'Capture time unknown (paste/file metadata not trustworthy)');
+ }else{captureTrusted=true;put('ncCaptureInfo','CSV candle timestamps accepted after completion check; source is user-supplied.');
+  applyCsvOutcomes(rows);put('ncBacktest',backtest(rows));}
+ put('ncDataError','');preview();
+}
+window.addEventListener('fusion:binomo-candles',onData);
+$('ncFreshConfirm')?.addEventListener('change',e=>{captureTrusted=!!e.target.checked;preview();});
+$('ncCrop')?.addEventListener('change',()=>{
+ captureTrusted=false;$('ncFreshConfirm').checked=false;
+ if($('shotPreview')?.complete&&$('shotPreview')?.naturalWidth){$('estimateBinomo')?.click();}else{put('ncDataError','Select a screenshot to apply the crop.');}
+});
+$('ncRetry')?.addEventListener('click',()=>{if($('shotPreview')?.complete&&$('shotPreview')?.naturalWidth){$('estimateBinomo')?.click();}else{put('ncDataError','Select a screenshot first.');}});
+$('ncBacktestBtn')?.addEventListener('click',()=>{put('ncBacktest',dataset?.source==='csv'?backtest(dataset.rows):'Use timestamped 1-minute OHLC CSV for backtesting; a screenshot does not provide verified history.');});
+$('ncExport')?.addEventListener('click',()=>{const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const rows=[['TargetTimeIST','Direction','Source','CapturedAtISO','Outcome','OutcomeMethod','Reason'].join(',')];
+ for(const j of journal)rows.push([hh(j.target),j.dir,j.source,new Date(j.created).toISOString(),j.outcome||'',j.method||'',j.reason].map(esc).join(','));
+ const url=URL.createObjectURL(new Blob([rows.join('\r\n')],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='crypto10-nextcandle-journal.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+});
+$('ncClear')?.addEventListener('click',()=>{if(!window.confirm('Delete all local Next Candle Monitor journal entries on this browser?'))return;journal=[];save();renderJournal();put('ncJournalNote','Local journal cleared.');});
+setInterval(preview,1000);renderJournal();preview();
+})();
+
+</script></body></html>
