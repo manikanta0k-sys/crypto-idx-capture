@@ -65,7 +65,7 @@ function applyCsvOutcomes(rows){
 }
 function logSignal(dir,target,source,reason){const id=`${source}:${target}:${dir}`;if(id===lockId)return;lockId=id;
  if(journal.some(r=>r.source===source&&r.target===target))return;
- journal.push({id,target,dir,source,reason,created:Date.now(),outcome:null});journal=journal.slice(-600);save();renderJournal();
+ journal.push({id,target,dir,source,reason,created:Date.now(),outcome:null});journal=journal.slice(-600);save();renderJournal();window.CryptoFusionV3?.noteSignal?.(target);
 }
 function show(dir,headline,reason,meta,valid=false){
  put('ncDirection',dir);const el=$('ncDirection');if(el){el.style.color=COLORS[dir]||COLORS.WAIT;el.className='nc-decision '+dir.toLowerCase();}
@@ -98,6 +98,8 @@ function preview(){
  put('ncPhase',phase);put('ncPhaseDetail',phaseDetail);
  put('ncEntryWindow',now<target?`Not open; capture at ${hh(target)}`:now>=target+9000?'Late: new screenshot needed':`${Math.ceil((target+9000-now)/1000)}s left to review`);
  const result=decide(rows);paintBias(result,d);
+ const v3=window.CryptoFusionV3;
+ const v3check=v3?.guard?.({dataset:d,result,now,target})||{problems:[]};
  const problems=[];
  if(d.source==='screenshot'){
   if(!captureTrusted)problems.push('Capture time unverified: tick the fresh chart confirmation only if truly just captured');
@@ -112,6 +114,7 @@ function preview(){
  if(now<target)problems.push('Target candle not open yet');
  if(now>=target+9000)problems.push('Early signal window expired');
  if(now>=target+M)problems.push('Target candle already ended');
+ if(Array.isArray(v3check.problems))problems.push(...v3check.problems);
  const decision=problems.length?'WAIT':result.dir;
  const core=decision==='WAIT'?(problems.length?problems.slice(0,2).join(' · '):result.reason):result.reason;
  const reason=core+(problems.length>2?` · +${problems.length-2} more timing/data checks`:'');
@@ -131,9 +134,9 @@ function backtest(rows){
  }
  return signal?`${win} win / ${loss} loss / ${tie} tie · ${signal} signals from ${total} tested candles · ${Math.round(100*win/signal)}% observed win proportion. Historical only; not out-of-sample and no guarantee.`:`No UP/DOWN signals over ${total} tested candles (filters mostly WAIT). Try longer clean CSV, not screenshot data.`;
 }
-function onData(e){const d=e.detail||{};if(!Array.isArray(d.rows)||d.rows.length<20){renderFailure(d.error||'Not enough identifiable completed candles');return;}
+function onData(e){if(window.CryptoFusionV3?.isLoading?.()){renderFailure('New screenshot loading; wait for image load before analyzing');return;}const d=e.detail||{};if(!Array.isArray(d.rows)||d.rows.length<20){renderFailure(d.error||'Not enough identifiable completed candles');return;}
  const rows=d.rows.filter(r=>Array.isArray(r)&&r.length>=5&&r.slice(1,5).every(Number.isFinite)).map(r=>r.slice(0,5));if(rows.length<20){renderFailure('Invalid candle levels');return;}
- const source=d.source==='csv'?'csv':'screenshot';dataset={rows,source,at:d.at||Date.now(),preset:d.preset||'',quality:d.quality||'',estimated:source==='screenshot'};
+ const source=d.source==='csv'?'csv':'screenshot';dataset={rows,source,at:(source==='screenshot'?window.CryptoFusionV3?.originalReceiptAt?.():0)||d.at||Date.now(),preset:d.preset||'',quality:d.quality||'',estimated:source==='screenshot'};
  if(source==='screenshot'){
   const file=$('shotFile')?.files?.[0];captureAt=file?.lastModified||0;
   // Recent photo metadata is only a freshness hint, not proof of correct chart candles.
@@ -156,5 +159,5 @@ $('ncExport')?.addEventListener('click',()=>{const esc=v=>'"'+String(v??'').repl
  const url=URL.createObjectURL(new Blob([rows.join('\r\n')],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='crypto10-nextcandle-journal.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
 });
 $('ncClear')?.addEventListener('click',()=>{if(!window.confirm('Delete all local Next Candle Monitor journal entries on this browser?'))return;journal=[];save();renderJournal();put('ncJournalNote','Local journal cleared.');});
-setInterval(preview,1000);renderJournal();preview();
+window.CryptoFusionV2Refresh=preview;setInterval(preview,1000);renderJournal();preview();
 })();
